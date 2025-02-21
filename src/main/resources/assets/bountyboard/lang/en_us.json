@@ -1,0 +1,14 @@
+{
+  "item.bountyboard.bounty_token": "Bounty Token",
+
+  "item.bountyboard.headhunters_hatchet": "Headhunter's Hatchet",
+
+  "tooltip.bountyboard.headhunters_hatchet.shift_down": "§e§lPassive: §c§lBloodlust§r - Grants 5 seconds of §oregeneration§r on every kill.",
+  "tooltip.bountyboard.headhunters_hatchet.shift_down1": "§e§lActive: §c§lBerserk§r - Right-click to gain §oswiftness§r, §ostrength§r, and §oresistance§r for 5 seconds.",
+  "tooltip.bountyboard.headhunters_hatchet.shift_down2": "§e§lCooldown:§r 20 seconds",
+  "tooltip.bountyboard.headhunters_hatchet": "Press §eSHIFT§r for more information!",
+
+  "block.bountyboard.bounty_box_1": "Tier 1 Bounty Box",
+
+  "creativetab.bountyboard.bounty_board": "Bounty Board Mod"
+}
