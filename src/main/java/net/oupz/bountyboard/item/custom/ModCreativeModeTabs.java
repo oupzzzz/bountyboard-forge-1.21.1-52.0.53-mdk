@@ -22,6 +22,7 @@ public class ModCreativeModeTabs {
                     .displayItems((itemDIsplayParameters, output) -> {
                         output.accept(ModItems.BOUNTY_TOKEN.get());
                         output.accept(ModItems.HEADHUNTERS_HATCHET.get());
+                        output.accept(ModItems.PHANTOM_REAVER.get());
                         output.accept(ModBlocks.BOUNTY_BOX_1.get());
                         output.accept(ModBlocks.BOUNTY_BOX_2.get());
                         output.accept(ModBlocks.BOUNTY_BOX_3.get());

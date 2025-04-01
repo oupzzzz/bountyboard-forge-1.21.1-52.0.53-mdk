@@ -6,7 +6,11 @@ import net.minecraftforge.common.ForgeTier;
 import net.oupz.bountyboard.util.ModTags;
 
 public class ModToolTiers {
-    public static final Tier BOUNTYBOARD = new ForgeTier(3000, 15.0F, 6.0F, 15,
-            ModTags.Blocks.NEEDS_BOUNTYBOARD_TOOL, () -> Ingredient.of(ModItems.HEADHUNTERS_HATCHET.get()),
-            ModTags.Blocks.INCORRECT_FOR_BOUNTYBOARD_TOOL);
+    public static final Tier HEADHUNTER_TIER = new ForgeTier(2500, 12.0F, 6.0F, 50,
+            ModTags.Blocks.NEEDS_HEADHUNTER_TOOL, () -> Ingredient.EMPTY,
+            ModTags.Blocks.INCORRECT_FOR_HEADHUNTER_TOOL);
+
+    public static final Tier PHANTOM_TIER = new ForgeTier(2500, 12.0F, 6.0F, 50,
+            ModTags.Blocks.NEEDS_PHANTOM_TOOL, () -> Ingredient.EMPTY,
+            ModTags.Blocks.INCORRECT_FOR_PHANTOM_TOOL);
 }

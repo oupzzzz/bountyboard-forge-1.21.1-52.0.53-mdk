@@ -10,8 +10,11 @@ import net.oupz.bountyboard.BountyBoard;
 
 public class ModTags {
     public static class Blocks{
-        public static final TagKey<Block> NEEDS_BOUNTYBOARD_TOOL = createTag("needs_bountyboard_tool");
-        public static final TagKey<Block> INCORRECT_FOR_BOUNTYBOARD_TOOL = createTag("incorrect_for_bountyboard_tool");
+        public static final TagKey<Block> NEEDS_HEADHUNTER_TOOL = createTag("needs_headhunter_tool");
+        public static final TagKey<Block> INCORRECT_FOR_HEADHUNTER_TOOL = createTag("incorrect_for_headhunter_tool");
+        public static final TagKey<Block> NEEDS_PHANTOM_TOOL = createTag("needs_headhunter_tool");
+        public static final TagKey<Block> INCORRECT_FOR_PHANTOM_TOOL = createTag("incorrect_for_headhunter_tool");
+
 
         public static final TagKey<Block> createTag(String name) {
             return BlockTags.create(ResourceLocation.fromNamespaceAndPath(BountyBoard.MOD_ID, name));

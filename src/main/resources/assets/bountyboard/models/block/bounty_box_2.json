@@ -1,8 +1,0 @@
-{
-  "parent": "block/cube_bottom_top",
-  "textures": {
-    "side": "bountyboard:block/bounty_box_2",
-    "bottom": "bountyboard:block/bounty_box_bottom",
-    "top": "bountyboard:block/bounty_box_top"
-  }
-}
