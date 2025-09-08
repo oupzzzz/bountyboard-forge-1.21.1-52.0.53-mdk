@@ -1,24 +1,36 @@
 package net.oupz.bountyboard.util;
 
-import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.Holder;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.server.ServerLifecycleHooks;
+import net.oupz.bountyboard.effect.ModEffects;
 import net.oupz.bountyboard.item.ModItems;
+import net.oupz.bountyboard.item.weapons.HeadhuntersHatchet;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,85 +41,129 @@ public class ModEvents {
         MinecraftForge.EVENT_BUS.register(this);
     }
 
+    private static final Map<UUID, Integer> spectatorTimers = new HashMap<>();
+
+    public static void addSpectatorTimer(UUID playerId, int ticks) {
+        spectatorTimers.put(playerId, ticks);
+    }
+
+    @SubscribeEvent
+    public static void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
+
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            UUID id = player.getUUID();
+            Integer timeLeft = spectatorTimers.get(id);
+            if (timeLeft != null) {
+                // ---- OLD: this only exists on ServerLevel, not Level ----
+                // ((ServerLevel)player.level()).sendParticles(
+                //     ParticleTypes.SMOKE,
+                //     player.getX(), player.getY(), player.getZ(),
+                //     8,    // count
+                //     0.5, 0.5, 0.5,  // spread
+                //     0.01  // speed
+                // );
+
+                // ---- NEW: always‑visible particles (ignores client "minimal particles" setting) ----
+                Level world = player.level();
+                if (!world.isClientSide) {
+                    // spawn 8 always‑visible smoke puffs
+                    for (int i = 0; i < 8; i++) {
+                        world.addAlwaysVisibleParticle(
+                                ParticleTypes.SMOKE,
+                                player.getX(), player.getY(), player.getZ(),
+                                0.5, 0.5, 0.5   // velocity/spread
+                        );
+                    }
+                }
+
+                // tick down…
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    CompoundTag data = player.getPersistentData();
+                    String prev = data.getString("phantomReaverPrevMode");
+                    GameType oldType = GameType.byName(prev);
+                    player.setGameMode(oldType);
+                    spectatorTimers.remove(id);
+                } else {
+                    spectatorTimers.put(id, timeLeft);
+                }
+            }
+        }
+    }
+
     @SubscribeEvent
     public void onLivingDeath(LivingDeathEvent event) {
-        if (event.getSource().getEntity() instanceof Player player) {
-            ItemStack heldStack = player.getMainHandItem();
-            if (heldStack.getItem() == ModItems.HEADHUNTERS_HATCHET.get()) {
-
-                player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 100, 2, true, false, false));
-            }
-        }
+        HeadhuntersHatchet.handleKill(event);
     }
 
-    private static final Map<UUID, Integer> berserkPlayers=new ConcurrentHashMap<>();
-
-    @SubscribeEvent
-    public void onHatchetRightClick(PlayerInteractEvent.RightClickItem event) {
-        ItemStack stack = event.getItemStack();
-        if(stack.getItem() == ModItems.HEADHUNTERS_HATCHET.get()) {
-            if(!event.getEntity().getCooldowns().isOnCooldown(stack.getItem())) {
-                event.getEntity().addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 100, 1, false, false, false));
-                event.getEntity().addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 100, 3, false, false, false));
-                event.getEntity().addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 100, 3, false, false, false));
-
-                event.getEntity().getCooldowns().addCooldown(stack.getItem(), 000);
-
-                event.getLevel().playSound(null, event.getEntity().blockPosition(), SoundEvents.LAVA_EXTINGUISH, SoundSource.PLAYERS, 1.0F, 1.0F);
-
-                if(!event.getLevel().isClientSide()) {
-                    ((net.minecraft.server.level.ServerLevel) event.getLevel()).sendParticles(
-                            ParticleTypes.FLAME,
-                            event.getEntity().getX(),
-                            event.getEntity().getY() + event.getEntity().getBbHeight() * 0.5,
-                            event.getEntity().getZ(),
-                            100,
-                            0.05, 0.5, 0.05,
-                            0.03
-                    );
-                    berserkPlayers.put(event.getEntity().getUUID(), event.getEntity().tickCount + 100);
-                }
-                event.setCancellationResult(InteractionResult.SUCCESS);
-                event.setCanceled(true);
-            }
-        }
-    }
 
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if(event.player.level().isClientSide() && event.phase == TickEvent.Phase.END) {
-            if (!event.player.isAlive()) {
-                berserkPlayers.remove(event.player.getUUID());
-                return;
-            }
 
+        if (event.player.level().isClientSide() && event.phase == TickEvent.Phase.END) {
+            HeadhuntersHatchet.handleTick(event.player);
+        }
 
-            UUID uuid = event.player.getUUID();
-            if(berserkPlayers.containsKey(uuid)) {
-                int expireTick = berserkPlayers.get(uuid);
-                if(event.player.tickCount < expireTick) {
+        if (event.phase != TickEvent.Phase.END || event.player.level().isClientSide) return;
 
-                    double tick = event.player.tickCount;
-                    double angle = tick * 0.18;
-                    double radius = 0.5;
+        Player player = event.player;
+        boolean holdingMain = player.getMainHandItem().getItem() == ModItems.RAVAGER_WRECKER.get();
+        boolean holdingOff  = player.getOffhandItem().getItem() == ModItems.RAVAGER_WRECKER.get();
 
-                    event.player.level().addParticle(ParticleTypes.FLAME,
-                            event.player.getX() - (Math.cos(angle) * radius),
-                            event.player.getY() + 0.5 + (Math.sin(tick * 0.4) * 0.5),
-                            event.player.getZ() - (Math.sin(angle) * radius),
-                            0, 0.1, 0);
-
-                    event.player.level().addParticle(ParticleTypes.FLAME,
-                            event.player.getX() + (Math.cos(angle) * radius),
-                            event.player.getY() + 0.5 + (Math.cos(tick * 0.4) * 0.5),
-                            event.player.getZ() + (Math.sin(angle) * radius),
-                            0, 0.1, 0);
-                } else {
-                    berserkPlayers.remove(uuid);
-                }
+        if (holdingMain || holdingOff) {
+            // refresh slowness
+            player.addEffect(new MobEffectInstance(
+                    MobEffects.MOVEMENT_SLOWDOWN,
+                    10,    // ticks
+                    1,    // amp
+                    true, // ambient
+                    false // no particles
+            ));
+        } else {
+            // not holding it: remove any leftover slowness immediately
+            if (player.hasEffect(MobEffects.MOVEMENT_SLOWDOWN)) {
+                player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
             }
         }
     }
 
+    @SubscribeEvent
+    public void onEntityHurt(LivingHurtEvent event) {
+        if (event.getSource().getEntity() instanceof Player player) {
+            ItemStack heldStack = player.getMainHandItem();
 
+            if (heldStack.getItem() == ModItems.RAVAGER_WRECKER.get()) {
+                LivingEntity target = (LivingEntity) event.getEntity();
+                double dx = player.getX() - target.getX();
+                double dz = player.getZ() - target.getZ();
+                float knockbackMultiplier = 1.5f;
+                target.knockback(knockbackMultiplier, dx, dz);
+            }
+        }
+    }
+
+    private static final float KNOCKBACK_MULTIPLIER = 3.0f;
+
+    public static void onLivingKnockBack(LivingKnockBackEvent event) {
+        LivingEntity target = event.getEntity();
+        DamageSource src = target.getLastDamageSource();
+        if (src == null) return;
+        Entity attackerEntity = src.getEntity();
+        if (!(attackerEntity instanceof LivingEntity attacker)) return;
+        if (attacker.getMainHandItem().getItem() != ModItems.RAVAGER_WRECKER.get())
+            return;
+
+        // cancel the vanilla knockback
+        event.setCanceled(true);
+
+        // compute direction
+        double dx = target.getX() - attacker.getX();
+        double dz = target.getZ() - attacker.getZ();
+        float strength = event.getStrength() * KNOCKBACK_MULTIPLIER;
+
+        // apply your custom knockback
+        target.knockback(strength, dx, dz);
+    }
 }

@@ -6,6 +6,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraftforge.common.data.BlockTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.oupz.bountyboard.BountyBoard;
+import net.oupz.bountyboard.block.ModBlocks;
 import net.oupz.bountyboard.util.ModTags;
 
 import javax.annotation.Nullable;
@@ -18,10 +19,15 @@ public class ModBlockTagProvider extends BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider pProvider) {
-        tag(ModTags.Blocks.NEEDS_BOUNTYBOARD_TOOL)
-                .addTag(BlockTags.NEEDS_DIAMOND_TOOL);
-        tag(ModTags.Blocks.INCORRECT_FOR_BOUNTYBOARD_TOOL)
+        tag(ModTags.Blocks.NEEDS_HEADHUNTER_TOOL)
+                .addTag(BlockTags.NEEDS_DIAMOND_TOOL)
+                .addTag(BlockTags.MINEABLE_WITH_AXE)
+                .add(ModBlocks.BOUNTY_BOX_1.get())
+                .add(ModBlocks.BOUNTY_BOX_2.get())
+                .add(ModBlocks.BOUNTY_BOX_3.get())
+                .add(ModBlocks.BOUNTY_BOX_4.get());
+        tag(ModTags.Blocks.INCORRECT_FOR_HEADHUNTER_TOOL)
                 .addTag(BlockTags.INCORRECT_FOR_DIAMOND_TOOL)
-                .remove(ModTags.Blocks.NEEDS_BOUNTYBOARD_TOOL);
+                .remove(ModTags.Blocks.NEEDS_HEADHUNTER_TOOL);
     }
 }

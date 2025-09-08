@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "bountyboard:block/plush_block" },
+    "facing=south": { "model": "bountyboard:block/plush_block", "y": 180 },
+    "facing=west":  { "model": "bountyboard:block/plush_block", "y": 270 },
+    "facing=east":  { "model": "bountyboard:block/plush_block", "y": 90 }
+  }
+}

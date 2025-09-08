@@ -10,6 +10,7 @@ import net.minecraftforge.registries.RegistryObject;
 import net.oupz.bountyboard.BountyBoard;
 import net.oupz.bountyboard.block.ModBlocks;
 import net.oupz.bountyboard.item.ModItems;
+import net.oupz.bountyboard.registry.BlockRegistry;
 
 public class ModCreativeModeTabs {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS =
@@ -26,6 +27,9 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.BOUNTY_BOX_1.get());
                         output.accept(ModBlocks.BOUNTY_BOX_2.get());
                         output.accept(ModBlocks.BOUNTY_BOX_3.get());
+                        output.accept(ModBlocks.BOUNTY_BOX_4.get());
+                        output.accept(BlockRegistry.BOUNTY_BOARD.get());
+                        output.accept(ModBlocks.PLUSH_BLOCK.get());
                     }).build());
 
     public static void register(IEventBus eventBus) {

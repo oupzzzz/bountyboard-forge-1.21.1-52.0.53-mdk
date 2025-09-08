@@ -20,6 +20,7 @@ public class ModItemModelProvider extends ItemModelProvider {
         basicItem(ModItems.BOUNTY_TOKEN.get());
 
         handheldItem(ModItems.HEADHUNTERS_HATCHET);
+        handheldItem(ModItems.PHANTOM_REAVER);
     }
 
     private ItemModelBuilder handheldItem(RegistryObject<Item> item) {

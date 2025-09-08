@@ -2,13 +2,29 @@
   "item.bountyboard.bounty_token": "Bounty Token",
 
   "item.bountyboard.headhunters_hatchet": "Headhunter's Hatchet",
+  "item.bountyboard.phantom_reaver": "Phantom Reaver",
+  "item.bountyboard.ravager_wrecker": "Ravager Wrecker",
+
 
   "tooltip.bountyboard.headhunters_hatchet.shift_down": "§e§lPassive: §c§lBloodlust§r - Grants 5 seconds of §oregeneration§r on every kill.",
   "tooltip.bountyboard.headhunters_hatchet.shift_down1": "§e§lActive: §c§lBerserk§r - Right-click to gain §oswiftness§r, §ostrength§r, and §oresistance§r for 5 seconds.",
   "tooltip.bountyboard.headhunters_hatchet.shift_down2": "§e§lCooldown:§r 20 seconds",
   "tooltip.bountyboard.headhunters_hatchet": "Press §eSHIFT§r for more information!",
 
-  "block.bountyboard.bounty_box_1": "Tier 1 Bounty Box",
+  "tooltip.bountyboard.phantom_reaver.shift_down": "§e§lPassive: §c§lSpectral Mark§r - Attacks have a 10% chance to inflict opponent with a “Spectral Mark” for 10 seconds.",
+  "tooltip.bountyboard.phantom_reaver.shift_down1": "§e§lActive: §c§lSpectral State§r - Right-click to absorb a nearby opponent's Spectral Mark to enter Spectral State for 2 seconds.",
+  "tooltip.bountyboard.phantom_reaver": "Press §eSHIFT§r for more information!",
 
-  "creativetab.bountyboard.bounty_board": "Bounty Board Mod"
+  "block.bountyboard.bounty_box_1": "§3Tier 1 Bounty Box",
+  "block.bountyboard.bounty_box_2": "§eTier 2 Bounty Box",
+  "block.bountyboard.bounty_box_3": "§cTier 3 Bounty Box",
+  "block.bountyboard.bounty_box_4": "§5Tier 4 Bounty Box",
+  "block.bountyboard.plush_block": "Player Plushie",
+
+  "effect.bountyboard.spectral_mark": "Spectral Mark",
+
+  "creativetab.bountyboard.bounty_board": "Bounty Board Mod",
+
+  "menu.title.bountyboard.bounty_board_menu": "Bounty Board",
+  "block.bountyboard.bounty_board": "Bounty Board"
 }
