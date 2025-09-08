@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "bountyboard:block/bounty_box_2_top",
+    "side": "bountyboard:block/bounty_box_2"
+  }
+}

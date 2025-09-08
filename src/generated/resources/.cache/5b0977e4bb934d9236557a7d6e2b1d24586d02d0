@@ -1,0 +1,13 @@
+// 1.21.1	2025-02-21T01:53:41.2718277	Block States: bountyboard
+d579b74966c5097a8a156ae0faebe0a75acc2518 assets/bountyboard/blockstates/bounty_box_1.json
+e9e94124656408107d5cb450253be5c3928e1de3 assets/bountyboard/blockstates/bounty_box_2.json
+2c5a37ec7c13afa4a23f24ee80c2d84539cd9d24 assets/bountyboard/blockstates/bounty_box_3.json
+e6738494a25912f8826c36efced252e89cb7e9a0 assets/bountyboard/models/block/bounty_box_1.json
+a1137e3ac3e8b8ebea8abc01e885baf8f6d5993a assets/bountyboard/models/block/bounty_box_1_horizontal.json
+b441e3128d11ea403ce407d868b61e007ccad749 assets/bountyboard/models/block/bounty_box_2.json
+4d3b44bcc238a8892eac7700d916833d001185de assets/bountyboard/models/block/bounty_box_2_horizontal.json
+19cd76b96025bcade01ecfb8176ba364a95877e9 assets/bountyboard/models/block/bounty_box_3.json
+4e49dd9af4969939ce3a18a8b2de45693785af89 assets/bountyboard/models/block/bounty_box_3_horizontal.json
+35cef19c4bcf5266cf02c37c675d89a873ac31ab assets/bountyboard/models/item/bounty_box_1.json
+fdfcc9e7b46a681397855945afb160823d1c15e1 assets/bountyboard/models/item/bounty_box_2.json
+32eba62152113f18ca84621855da1be267b729ff assets/bountyboard/models/item/bounty_box_3.json

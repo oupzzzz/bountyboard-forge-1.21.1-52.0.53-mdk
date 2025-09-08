@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "bountyboard:block/bounty_box_3_horizontal",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "bountyboard:block/bounty_box_3"
+    },
+    "axis=z": {
+      "model": "bountyboard:block/bounty_box_3_horizontal",
+      "x": 90
+    }
+  }
+}

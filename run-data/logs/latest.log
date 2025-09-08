@@ -1,0 +1,19 @@
+[07May2025 22:45:19.762] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forge_userdev_data, --assetIndex, 17, --assetsDir, C:\Users\cmac0\.gradle\caches\forge_gradle\assets, --gameDir, ., --mod, bountyboard, --all, --output, C:\Users\cmac0\Downloads\bountyboard-forge-1.21.1-52.0.53-mdk\src\generated\resources, --existing, C:\Users\cmac0\Downloads\bountyboard-forge-1.21.1-52.0.53-mdk\src\main\resources]
+[07May2025 22:45:19.769] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: JVM identified as Eclipse Adoptium OpenJDK 64-Bit Server VM 21.0.6+7-LTS
+[07May2025 22:45:19.770] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher 10.2.4 starting: java version 21.0.6 by Eclipse Adoptium; OS Windows 10 arch amd64 version 10.0
+[07May2025 22:45:19.851] [main/INFO] [net.minecraftforge.fml.loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forge_userdev_data
+[07May2025 22:45:19.932] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=jar:file:///C:/Users/cmac0/.gradle/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.7/8ab114ac385e6dbdad5efafe28aba4df8120915f/mixin-0.8.7.jar!/ Service=ModLauncher Env=UNKNOWN
+[07May2025 22:45:20.753] [main/INFO] [net.minecraftforge.fml.loading.moddiscovery.JarInJarDependencyLocator/]: No dependencies to load found. Skipping!
+[07May2025 22:45:21.375] [main/INFO] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forge_userdev_data' with arguments [--gameDir, ., --assetsDir, C:\Users\cmac0\.gradle\caches\forge_gradle\assets, --assetIndex, 17, --mod, bountyboard, --all, --output, C:\Users\cmac0\Downloads\bountyboard-forge-1.21.1-52.0.53-mdk\src\generated\resources, --existing, C:\Users\cmac0\Downloads\bountyboard-forge-1.21.1-52.0.53-mdk\src\main\resources]
+[07May2025 22:45:25.468] [modloading-worker-0/INFO] [net.minecraftforge.common.ForgeMod/FORGEMOD]: Forge mod loading, version 52.0.53, for MC 1.21.1 with MCP 20240808.132146
+[07May2025 22:45:25.468] [modloading-worker-0/INFO] [net.minecraftforge.common.MinecraftForge/FORGE]: MinecraftForge v52.0.53 Initialized
+[07May2025 22:45:25.485] [modloading-worker-0/INFO] [net.minecraftforge.common.ForgeMod/FORGEMOD]: Opening jdk.naming.dns/com.sun.jndi.dns to java.naming
+[07May2025 22:45:25.692] [main/INFO] [net.minecraftforge.data.loading.DatagenModLoader/]: Initializing Data Gatherer for mods [bountyboard]
+[07May2025 22:45:25.787] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/C:/Users/cmac0/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.21.1-52.0.53_mapped_parchment_2024.11.17-1.21.1/forge-1.21.1-52.0.53_mapped_parchment_2024.11.17-1.21.1-recomp.jar%230!/assets/.mcassetsroot' uses unexpected schema
+[07May2025 22:45:25.787] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/C:/Users/cmac0/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.21.1-52.0.53_mapped_parchment_2024.11.17-1.21.1/forge-1.21.1-52.0.53_mapped_parchment_2024.11.17-1.21.1-recomp.jar%230!/data/.mcassetsroot' uses unexpected schema
+[07May2025 22:45:25.923] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Item Models: bountyboard
+[07May2025 22:45:25.933] [main/INFO] [net.minecraft.data.DataGenerator/]: Item Models: bountyboard finished after 9 ms
+[07May2025 22:45:25.933] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Block States: bountyboard
+[07May2025 22:45:26.027] [main/INFO] [net.minecraft.data.DataGenerator/]: Block States: bountyboard finished after 93 ms
+[07May2025 22:45:26.027] [main/INFO] [net.minecraft.data.DataGenerator/]: All providers took: 103 ms
+[07May2025 22:45:26.032] [main/INFO] [net.minecraft.data.HashCache/]: Caching: total files: 20, old count: 14, new count: 16, removed stale: 5, written: 1
