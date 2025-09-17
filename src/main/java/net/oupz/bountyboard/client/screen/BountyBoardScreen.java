@@ -12,6 +12,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.network.PacketDistributor;
 import net.oupz.bountyboard.BountyBoard;
+import net.oupz.bountyboard.bounty.renown.RenownHelper;
 import net.oupz.bountyboard.client.ClientDailyStatus;
 import net.oupz.bountyboard.client.ClientRewards;
 import net.oupz.bountyboard.init.ModNetworking;
@@ -307,12 +308,14 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
 
         // ...but disable if nothing selected OR the selected bounty is already completed today
         boolean alreadyCompleted = false;
-        if (selectedBountyIndex >= 0 && selectedBountyIndex < currentBounties.size()) {
-            String id = currentBounties.get(selectedBountyIndex).id;
-            alreadyCompleted = net.oupz.bountyboard.client.ClientDailyStatus.isCompletedToday(id);
+        if (showTierButtons && selectedBountyIndex >= 0 && selectedBountyIndex < currentBounties.size()) {
+            net.minecraft.resources.ResourceLocation rl = currentBounties.get(selectedBountyIndex).id;
+            alreadyCompleted = net.oupz.bountyboard.client.ClientDailyStatus.isCompletedToday(rl.toString());
         }
+
         acceptButton.active = showTierButtons && (selectedBountyIndex >= 0) && !alreadyCompleted;
     }
+
 
     private void updateButtonStates() {
         // Update tier button states
@@ -507,43 +510,33 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
     }
 
     private void renderBountyEntry(GuiGraphics graphics, BountyData bounty, int x, int y, boolean isSelected, boolean isHovered) {
-        // Is this bounty already completed today?
-        boolean alreadyCompleted = net.oupz.bountyboard.client.ClientDailyStatus.isCompletedToday(bounty.id);
+        // Is this bounty already completed today? (ClientDailyStatus stores ids as strings)
+        boolean alreadyCompleted = net.oupz.bountyboard.client.ClientDailyStatus.isCompletedToday(bounty.id.toString());
 
         // Row background/highlight
         if (alreadyCompleted) {
-            // subtle dark overlay for completed rows
             graphics.fill(x, y, x + LIST_WIDTH, y + ITEM_CONTENT_HEIGHT, 0x55000000);
         } else if (isSelected) {
-            // strong green selection highlight
             graphics.fill(x, y, x + LIST_WIDTH, y + ITEM_CONTENT_HEIGHT, 0xCC00AA00);
         } else if (isHovered) {
-            // subtle dark highlight that improves text readability
             graphics.fill(x, y, x + LIST_WIDTH, y + ITEM_CONTENT_HEIGHT, 0x40000000);
         }
 
         // Text colors
         final int mainTextColor   = alreadyCompleted ? 0xFFAAAAAA : 0xFFFFFFFF;
-        final int rewardTextColor = alreadyCompleted ? 0xFF888888 : 0xFFFFD700; // gold when available
-        // final int targetTextColor = alreadyCompleted ? 0xFF777777 : 0xFFCCCCCC; // (unused line kept for reference)
+        final int rewardTextColor = alreadyCompleted ? 0xFF888888 : 0xFFFFD700;
 
         // Title/description
         graphics.drawString(font,
                 alreadyCompleted ? (bounty.description + " (completed)") : bounty.description,
                 x + 5, y + 3, mainTextColor, false);
 
-        // Reward line
+        // Reward line (now computed from RenownHelper, same as server)
         graphics.drawString(font,
                 "Reward: " + bounty.getScaledReward(selectedTier) + " renown",
                 x + 5, y + 13, rewardTextColor, false);
-
-        // If you want to strike-through the title when completed, uncomment:
-        // if (alreadyCompleted) {
-        //     int titleW = this.font.width(bounty.description);
-        //     int lineY  = y + 3 + this.font.lineHeight / 2;
-        //     graphics.fill(x + 5, lineY, x + 5 + titleW, lineY + 1, 0x66FFFFFF);
-        // }
     }
+
 
     private void renderHistoryEntry(GuiGraphics graphics, PlayerHistoryEntry entry, int x, int y, boolean isHovered) {
         // Draw background highlight with better contrast
@@ -706,21 +699,12 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
         if (selectedBountyIndex >= 0 && selectedBountyIndex < currentBounties.size()) {
             BountyData bounty = currentBounties.get(selectedBountyIndex);
 
-            // Make a ResourceLocation for the bounty id.
-            // If your IDs are plain like "base_3", namespace them with your mod id.
-            ResourceLocation rl = ResourceLocation.tryParse(bounty.id);
-            if (rl == null || rl.getNamespace().equals("minecraft")) {
-                rl = ResourceLocation.fromNamespaceAndPath(BountyBoard.MOD_ID, bounty.id);
-            }
-
-            // Send the real accept packet to the server
-            ModNetworking.CHANNEL.send(new AcceptBountyC2S(rl, selectedTier),
+            // We already have a proper ResourceLocation now
+            ModNetworking.CHANNEL.send(new AcceptBountyC2S(bounty.id, selectedTier),
                     PacketDistributor.SERVER.noArg());
 
-            // Local log (optional)
-            System.out.println("Accepted bounty: " + bounty.description + " (" + rl + ")");
+            System.out.println("Accepted bounty: " + bounty.description + " (" + bounty.id + ")");
 
-            // Reset selection after accepting
             selectedBountyIndex = -1;
             updateButtonVisibility();
         }
@@ -748,12 +732,12 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
     private void loadBaseBounties() {
         currentBounties.clear();
 
-        // List of base bounties (generic targets — ignore targetType/targetCount now)
-        currentBounties.add(new BountyData("base_1", "Pillager Patrol", 100));
-        currentBounties.add(new BountyData("base_2", "Vindicator Hunt", 150));
-        currentBounties.add(new BountyData("base_3", "Crossbow Confiscation", 200));
-        currentBounties.add(new BountyData("base_4", "Scout Elimination", 125));
-        currentBounties.add(new BountyData("base_5", "Banner Destruction", 175));
+        // Only ids + descriptions here. Base renown comes from RenownHelper.
+        currentBounties.add(new BountyData("base_1", "Pillager Patrol"));
+        currentBounties.add(new BountyData("base_2", "Vindicator Hunt"));
+        currentBounties.add(new BountyData("base_3", "Crossbow Confiscation"));
+        currentBounties.add(new BountyData("base_4", "Scout Elimination"));
+        currentBounties.add(new BountyData("base_5", "Banner Destruction"));
     }
 
     private int getPlayerRenown() {
@@ -763,29 +747,24 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
 
     // Data classes
     private static class BountyData {
-        String id;
+        ResourceLocation id;
         String description;
-        int baseReward;
 
-        BountyData(String id, String description, int baseReward) {
-            this.id = id;
+        // pass just the path like "base_3"; we’ll namespace with your mod id
+        BountyData(String path, String description) {
+            this.id = ResourceLocation.fromNamespaceAndPath(BountyBoard.MOD_ID, path);
             this.description = description;
-            this.baseReward = baseReward;
         }
 
         int getScaledReward(int tier) {
-            return (int) (baseReward * getMultiplierForTier(tier));
-        }
-
-        private float getMultiplierForTier(int tier) {
-            return switch (tier) {
-                case 0 -> 1.0f;   // Tier I
-                case 1 -> 1.5f;   // Tier II
-                case 2 -> 2.25f;  // Tier III
-                default -> 1.0f;
-            };
+            var mc = net.minecraft.client.Minecraft.getInstance();
+            java.util.UUID pid = (mc.player != null) ? mc.player.getUUID() : new java.util.UUID(0L, 0L);
+            int base = net.oupz.bountyboard.bounty.renown.RenownHelper.getBaseRenown(id, pid);
+            float mult = net.oupz.bountyboard.bounty.renown.RenownHelper.getMultiplierForTier(tier);
+            return Math.round(base * mult);
         }
     }
+
 
     private static class WantedPlayer {
         String name;

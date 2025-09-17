@@ -2,6 +2,7 @@ package net.oupz.bountyboard.bounty.runtime;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.DifficultyInstance;
@@ -51,7 +52,36 @@ public final class ProximityWatcher {
             if (!anyAlive) {
                 cap.setState(ActiveBounty.State.COMPLETED);
 
+                // --- NEW: compute and award renown once (server-side) ---
                 int tier = cap.getTier(); // 0..2 as you already store
+                ResourceLocation bountyId = cap.getBountyId();
+
+                int baseRenown = net.oupz.bountyboard.bounty.renown.RenownHelper
+                        .getBaseRenown(cap.getBountyId(), player.getUUID());
+                float mult     = net.oupz.bountyboard.bounty.renown.RenownHelper.getMultiplierForTier(tier);
+                int finalRenown = Math.round(baseRenown * mult);
+
+                // Add to player's renown capability + append history entry
+                net.oupz.bountyboard.player.renown.PlayerRenown capRenown =
+                        net.oupz.bountyboard.player.renown.RenownCapabilityEvents.get(player);
+                capRenown.addRenown(finalRenown);
+
+                // If your CompletedBounty uses ResourceLocation as the id:
+                java.util.UUID bountyUuid = java.util.UUID.nameUUIDFromBytes(
+                        (bountyId != null ? bountyId.toString() : "unknown")
+                                .getBytes(java.nio.charset.StandardCharsets.UTF_8)
+                );
+
+                capRenown.addCompleted(new net.oupz.bountyboard.bounty.renown.CompletedBounty(
+                        bountyUuid,
+                        baseRenown,
+                        tier,
+                        mult,
+                        finalRenown,
+                        System.currentTimeMillis()
+                ));
+
+                // --- existing pending reward update (keep) ---
                 net.oupz.bountyboard.bounty.rewards.PendingRewards.add(player, tier, 1);
 
                 // Tell this client its new pending count for the UI badge
@@ -61,7 +91,7 @@ public final class ProximityWatcher {
                         player.connection.getConnection()
                 );
 
-                // ▼▼ NEW: mark daily completion on the SERVER (UTC-based) ▼▼
+                // ▼▼ Keep your daily limit update ▼▼
                 var id = cap.getBountyId();
                 if (id != null) {
                     boolean counted = net.oupz.bountyboard.bounty.limits.DailyLimit.markCompleted(player, id);
@@ -76,7 +106,7 @@ public final class ProximityWatcher {
                             "[bountyboard] Bounty completed!"
                     ));
                 }
-                // ▲▲ NEW ▲▲
+                // ▲▲ Keep ▲▲
 
                 // clear waypoint beam (finished bounty)
                 net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
@@ -111,7 +141,7 @@ public final class ProximityWatcher {
             spawnFromBounty(level, anchor, def, tier, cap); // record UUIDs as we spawn
             cap.setState(ActiveBounty.State.SPAWNED);
 
-// clear waypoint beam (player reached it)
+            // clear waypoint beam (player reached it)
             net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
                     new net.oupz.bountyboard.net.ClearWaypointS2C(),
                     player.connection.getConnection()
