@@ -11,15 +11,24 @@
   "tooltip.bountyboard.headhunters_hatchet.shift_down2": "§e§lCooldown:§r 20 seconds",
   "tooltip.bountyboard.headhunters_hatchet": "Press §eSHIFT§r for more information!",
 
-  "tooltip.bountyboard.phantom_reaver.shift_down": "§e§lPassive: §c§lSpectral Mark§r - Attacks have a 10% chance to inflict opponent with a “Spectral Mark” for 10 seconds.",
-  "tooltip.bountyboard.phantom_reaver.shift_down1": "§e§lActive: §c§lSpectral State§r - Right-click to absorb a nearby opponent's Spectral Mark to enter Spectral State for 2 seconds.",
+  "tooltip.bountyboard.phantom_reaver.shift_down": "§e§lPassive: §c§lSpectral Mark§r - Attacks have a 20% chance to inflict opponent with a “Spectral Mark” for 10 seconds.",
+  "tooltip.bountyboard.phantom_reaver.shift_down1": "§e§lActive: §c§lSpectral State§r - Right-click to absorb a nearby opponent's Spectral Mark to enter a Spectral State for 2 seconds.",
+  "tooltip.bountyboard.phantom_reaver.shift_down2": "§e§lCooldown:§r 30 seconds",
   "tooltip.bountyboard.phantom_reaver": "Press §eSHIFT§r for more information!",
+
+  "tooltip.bountyboard.ravager_wrecker.shift_down": "§e§lPassive: §c§lCrushing Impact§r - Attacks deal increased knockback and inflict enemies with short bursts of slowness",
+  "tooltip.bountyboard.ravager_wrecker.shift_down1": "§e§lActive: §c§lSeismic Slam§r - Right-click to charge up a Seismic Slam that knocks enemies up and away from you.",
+  "tooltip.bountyboard.ravager_wrecker.shift_down2": "§e§lCooldown:§r 15 seconds",
+
+  "tooltip.bountyboard.ravager_wrecker": "Press §eSHIFT§r for more information!",
 
   "block.bountyboard.bounty_box_1": "§3Tier 1 Bounty Box",
   "block.bountyboard.bounty_box_2": "§eTier 2 Bounty Box",
   "block.bountyboard.bounty_box_3": "§cTier 3 Bounty Box",
   "block.bountyboard.bounty_box_4": "§5Tier 4 Bounty Box",
-  "block.bountyboard.plush_block": "Player Plushie",
+  "block.bountyboard.plush_block_oupz": "Oupz's Plushie",
+  "block.bountyboard.plush_block_krizten": "Krizten's Plushie",
+  "block.bountyboard.plush_block_tfolk": "TFolk_'s Plushie",
 
   "effect.bountyboard.spectral_mark": "Spectral Mark",
 

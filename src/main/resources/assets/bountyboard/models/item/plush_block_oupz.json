@@ -1,0 +1,18 @@
+{
+  "parent": "minecraft:item/generated",
+  "loader": "forge:separate_transforms",
+  "base": {
+    "parent": "bountyboard:item/plush_block_oupz_3d"
+  },
+  "perspectives": {
+    "gui": {
+      "parent": "bountyboard:item/plush_2d"
+    },
+    "ground": {
+      "parent": "bountyboard:item/plush_2d"
+    },
+    "fixed": {
+      "parent": "bountyboard:item/plush_2d"
+    }
+  }
+}

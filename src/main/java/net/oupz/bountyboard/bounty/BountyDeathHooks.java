@@ -54,9 +54,15 @@ public final class BountyDeathHooks {
             sp.sendSystemMessage(Component.literal("[bountyboard] You died. Bounty failed and one daily attempt was used."));
 
             // 5) Push fresh daily status to refresh UI immediately
-            int used = DailyLimit.MAX_PER_DAY - DailyLimit.remaining(sp);
-            long secs = DailyLimit.secondsUntilResetUtc();
-            ModNetworking.CHANNEL.send(new DailyStatusS2C(used, secs), sp.connection.getConnection());
+            int used = net.oupz.bountyboard.bounty.limits.DailyLimit.MAX_PER_DAY
+                    - net.oupz.bountyboard.bounty.limits.DailyLimit.remaining(sp);
+            long secs = net.oupz.bountyboard.bounty.limits.DailyLimit.secondsUntilResetUtc();
+            java.util.Set<String> ids = net.oupz.bountyboard.bounty.limits.DailyLimit.completedIdStrings(sp); // <-- new
+
+            net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
+                    new net.oupz.bountyboard.net.DailyStatusS2C(used, secs, ids),
+                    sp.connection.getConnection()
+            );
         });
     }
 

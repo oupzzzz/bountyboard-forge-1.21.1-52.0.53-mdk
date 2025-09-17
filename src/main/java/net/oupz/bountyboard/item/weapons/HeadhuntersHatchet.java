@@ -12,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.oupz.bountyboard.item.ModItems;
 
 import java.util.Map;
@@ -64,7 +65,7 @@ public class HeadhuntersHatchet extends AxeItem {
             player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 100, 3, false, false, false));
             player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 100, 3, false, false, false));
 
-            player. getCooldowns().addCooldown(this, 200); //10 seconds (20 ticks a second)
+            player. getCooldowns().addCooldown(this, 400); //10 seconds (20 ticks a second)
 
             level.playSound(null, player.blockPosition(), SoundEvents.LAVA_EXTINGUISH, SoundSource.PLAYERS, 1.0f, 1.0f);
 

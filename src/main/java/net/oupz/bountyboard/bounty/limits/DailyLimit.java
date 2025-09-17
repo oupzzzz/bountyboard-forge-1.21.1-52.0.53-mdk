@@ -24,6 +24,16 @@ public final class DailyLimit {
     private static final ZoneId EST = ZoneId.of("America/New_York"); // Handles EST/EDT automatically
     private static final Clock EST_CLOCK = Clock.system(EST);
 
+    public static java.util.Set<String> completedIdStrings(net.minecraft.server.level.ServerPlayer sp) {
+        net.minecraft.nbt.CompoundTag bb = ensureFresh(sp);
+        return new java.util.HashSet<>(deserializeIdSet(bb.getString(KEY_SET)));
+    }
+
+    public static int completedCount(ServerPlayer sp) {
+        CompoundTag bb = ensureFresh(sp);
+        return Math.min(MAX_PER_DAY, bb.getInt(KEY_COUNT));
+    }
+
     /** Ensures the player’s daily bucket is for “today” (UTC). If day changed, reset. */
     private static CompoundTag ensureFresh(ServerPlayer sp) {
         CompoundTag root = sp.getPersistentData();

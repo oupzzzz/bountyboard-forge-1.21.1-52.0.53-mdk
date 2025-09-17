@@ -1,0 +1,10 @@
+{
+  "reward_claim": {
+    "sounds": [
+      {
+        "name": "bountyboard:reward_claim",
+        "stream": false
+      }
+    ]
+  }
+}

@@ -28,15 +28,12 @@ public class BountyBoardMenu extends AbstractContainerMenu {
 
         // --- SEND DAILY STATUS TO THIS PLAYER (server-side only) ---
         if (playerInventory.player instanceof net.minecraft.server.level.ServerPlayer sp) {
-            // compute completed today from remaining()
-            int completed = net.oupz.bountyboard.bounty.limits.DailyLimit.MAX_PER_DAY
-                    - net.oupz.bountyboard.bounty.limits.DailyLimit.remaining(sp);
-
-            // despite the name, this uses America/New_York in your class
+            int completed = net.oupz.bountyboard.bounty.limits.DailyLimit.completedCount(sp);
             long seconds  = net.oupz.bountyboard.bounty.limits.DailyLimit.secondsUntilResetUtc();
+            java.util.Set<String> ids = net.oupz.bountyboard.bounty.limits.DailyLimit.completedIdStrings(sp);
 
             net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
-                    new net.oupz.bountyboard.net.DailyStatusS2C(completed, seconds),
+                    new net.oupz.bountyboard.net.DailyStatusS2C(completed, seconds, ids),
                     sp.connection.getConnection()
             );
         }

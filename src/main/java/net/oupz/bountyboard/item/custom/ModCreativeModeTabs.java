@@ -24,12 +24,15 @@ public class ModCreativeModeTabs {
                         output.accept(ModItems.BOUNTY_TOKEN.get());
                         output.accept(ModItems.HEADHUNTERS_HATCHET.get());
                         output.accept(ModItems.PHANTOM_REAVER.get());
+                        output.accept(ModItems.RAVAGER_WRECKER.get());
                         output.accept(ModBlocks.BOUNTY_BOX_1.get());
                         output.accept(ModBlocks.BOUNTY_BOX_2.get());
                         output.accept(ModBlocks.BOUNTY_BOX_3.get());
                         output.accept(ModBlocks.BOUNTY_BOX_4.get());
                         output.accept(BlockRegistry.BOUNTY_BOARD.get());
-                        output.accept(ModBlocks.PLUSH_BLOCK.get());
+                        output.accept(ModBlocks.PLUSH_BLOCK_OUPZ.get());
+                        output.accept(ModBlocks.PLUSH_BLOCK_KRIZTEN.get());
+                        output.accept(ModBlocks.PLUSH_BLOCK_TFOLK.get());
                     }).build());
 
     public static void register(IEventBus eventBus) {

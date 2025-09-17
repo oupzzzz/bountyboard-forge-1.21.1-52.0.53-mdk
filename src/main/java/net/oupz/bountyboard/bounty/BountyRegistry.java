@@ -24,19 +24,18 @@ public final class BountyRegistry {
                 EntityType.PILLAGER,   EntityType.PILLAGER,   EntityType.PILLAGER
         );
 
-        // Tier 2: 5 vindicators, 5 pillagers, 2 evokers
+        // Tier 2: 5 vindicators, 5 pillagers, 2 witch
         var T2 = List.<EntityType<? extends Mob>>of(
                 EntityType.VINDICATOR, EntityType.VINDICATOR, EntityType.VINDICATOR, EntityType.VINDICATOR, EntityType.VINDICATOR,
                 EntityType.PILLAGER,   EntityType.PILLAGER,   EntityType.PILLAGER,   EntityType.PILLAGER,   EntityType.PILLAGER,
-                EntityType.EVOKER,     EntityType.EVOKER
+                EntityType.WITCH,     EntityType.WITCH
         );
 
-        // Tier 3: 4 vindicators, 3 pillagers, 3 evokers, 3 vexes, 2 ravagers, 1 witch
+        // Tier 3: 4 vindicators, 4 pillagers, 3 evokers, 3 vexes, 2 ravagers, 1 witch
         var T3 = List.<EntityType<? extends Mob>>of(
                 EntityType.VINDICATOR, EntityType.VINDICATOR, EntityType.VINDICATOR, EntityType.VINDICATOR,
-                EntityType.PILLAGER,   EntityType.PILLAGER,   EntityType.PILLAGER,
+                EntityType.PILLAGER,   EntityType.PILLAGER,   EntityType.PILLAGER, EntityType.PILLAGER,
                 EntityType.EVOKER,     EntityType.EVOKER,     EntityType.EVOKER,
-                EntityType.VEX,        EntityType.VEX,        EntityType.VEX,
                 EntityType.RAVAGER,    EntityType.RAVAGER,
                 EntityType.WITCH
         );

@@ -87,10 +87,7 @@ public class AcceptBountyC2S {
             );
 
             sp.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                    "[bountyboard] Accepted " + msg.bountyId()
-                            + " | tier=" + (msg.tier() + 1)
-                            + " | X=" + SEARCH_RADIUS
-                            + " | Anchor @" + anchor.getX() + ", " + anchor.getY() + ", " + anchor.getZ()
+                    "[bountyboard] Travel to "  + anchor.getX() + ", " + anchor.getY() + ", " + anchor.getZ() + " to start your tier " + (msg.tier() + 1) + " bounty!"
             ));
         });
         ctx.setPacketHandled(true);

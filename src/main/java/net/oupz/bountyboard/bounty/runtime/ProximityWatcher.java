@@ -68,17 +68,10 @@ public final class ProximityWatcher {
                     int rem = net.oupz.bountyboard.bounty.limits.DailyLimit.remaining(player);
                     long sec = net.oupz.bountyboard.bounty.limits.DailyLimit.secondsUntilResetUtc();
 
-                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                            "[bountyboard] Bounty completed!  Remaining today: " + rem + "  |  Reset in: " + formatHms(sec)
-                    ));
+                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal("[bountyboard] Bounty completed!"));
                 } else {
-                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                            "[bountyboard] Bounty completed!"
-                    ));
+                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal("[bountyboard] Bounty completed!"));
                 }
-                // ▲▲ NEW ▲▲
-
-                // clear waypoint beam (finished bounty)
                 net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
                         new net.oupz.bountyboard.net.ClearWaypointS2C(),
                         player.connection.getConnection()
@@ -118,9 +111,7 @@ public final class ProximityWatcher {
             );
 
             player.sendSystemMessage(Component.literal(
-                    "[bountyboard] Proximity trigger: spawned pack for " + bountyId +
-                            " (r=" + r + ", tier=" + (tier + 1) + ")"
-            ));
+                    "[bountyboard] Started Bounty. Good Luck!"));
         }
     }
 
@@ -129,7 +120,7 @@ public final class ProximityWatcher {
         // Skip if Peaceful (hostiles will be removed immediately)
         if (level.getDifficulty().getId() == 0) return;
 
-        var rng   = ThreadLocalRandom.current();
+        var rng   = java.util.concurrent.ThreadLocalRandom.current();
         var pool  = def.poolForTier(tier);   // full list (duplicates == multiple spawns)
         int ringR = 4;                       // scatter radius start
         int ringW = 6;                       // extra random spread
@@ -142,35 +133,55 @@ public final class ProximityWatcher {
             BlockPos column = anchor.offset(dx, 0, dz);
 
             // Place on top of world surface and stand above it
-            BlockPos surface  = level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, column);
+            BlockPos surface  = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE, column);
             BlockPos spawnPos = surface.above();
 
-            Mob mob = type.create(level);
+            net.minecraft.world.entity.Mob mob = type.create(level);
             if (mob == null) continue;
 
             // Nudge big mobs like ravagers up one extra block for safety
-            if (type == EntityType.RAVAGER) {
+            if (type == net.minecraft.world.entity.EntityType.RAVAGER) {
                 spawnPos = spawnPos.above(1);
             }
 
-            mob.moveTo(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5,
-                    rng.nextFloat() * 360f, 0f);
+            mob.moveTo(
+                    spawnPos.getX() + 0.5,
+                    spawnPos.getY(),
+                    spawnPos.getZ() + 0.5,
+                    rng.nextFloat() * 360f,
+                    0f
+            );
 
-            DifficultyInstance diff = level.getCurrentDifficultyAt(spawnPos);
-            mob.finalizeSpawn(level, diff, MobSpawnType.EVENT, (SpawnGroupData) null);
-            mob.addEffect(new MobEffectInstance(
-                    MobEffects.GLOWING,
+            net.minecraft.world.DifficultyInstance diff = level.getCurrentDifficultyAt(spawnPos);
+            mob.finalizeSpawn(level, diff, net.minecraft.world.entity.MobSpawnType.EVENT, (net.minecraft.world.entity.SpawnGroupData) null);
+
+            // ====== NEW: mark as "no drops" and zero equipment drop chances ======
+            mob.getPersistentData().putBoolean("bountyboard_nodrops", true);
+            for (net.minecraft.world.entity.EquipmentSlot slot : net.minecraft.world.entity.EquipmentSlot.values()) {
+                try {
+                    mob.setDropChance(slot, 0.0f);
+                } catch (Throwable ignored) {
+                    // some mobs may not support every slot; ignore safely
+                }
+            }
+            // =====================================================================
+
+            // Keep the glowing effect you added
+            mob.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                    net.minecraft.world.effect.MobEffects.GLOWING,
                     Integer.MAX_VALUE,   // effectively infinite
                     0,                   // amplifier
                     true,                // ambient (quieter look)
-                    false,               // show particles? (false = cleaner)
-                    false                // show icon? (not needed for mobs)
+                    false,               // show particles
+                    false                // show icon
             ));
+
             level.addFreshEntity(mob);
 
-            cap.addSpawnedMobId(mob.getUUID()); // <-- record for completion tracking
+            cap.addSpawnedMobId(mob.getUUID()); // record for completion tracking
         }
     }
+
 
     /** Remove dead/missing mobs from the tracked list and return whether any are still alive. */
     private static boolean pruneAndCheckAlive(ServerLevel level, ActiveBounty cap) {

@@ -23,6 +23,7 @@ import net.oupz.bountyboard.registry.BlockRegistry;
 import net.oupz.bountyboard.registry.ItemRegistry;
 import net.oupz.bountyboard.registry.MenuRegistry;
 import net.oupz.bountyboard.bounty.BountyRegistry;
+import net.oupz.bountyboard.sounds.ModSounds;
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -40,6 +41,8 @@ public class BountyBoard
         MinecraftForge.EVENT_BUS.register(this);
 
         ModCreativeModeTabs.register(modEventBus);
+
+        ModSounds.SOUND_EVENTS.register(modEventBus);
 
         ModItems.register(modEventBus);
         ModBlocks.register(modEventBus);

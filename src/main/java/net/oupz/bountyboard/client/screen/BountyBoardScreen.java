@@ -304,8 +304,14 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
 
         // Always show the accept button in BOUNTIES view...
         acceptButton.visible = showTierButtons;
-        // ...but gray it out (inactive) until a bounty is clicked
-        acceptButton.active  = (selectedBountyIndex >= 0);
+
+        // ...but disable if nothing selected OR the selected bounty is already completed today
+        boolean alreadyCompleted = false;
+        if (selectedBountyIndex >= 0 && selectedBountyIndex < currentBounties.size()) {
+            String id = currentBounties.get(selectedBountyIndex).id;
+            alreadyCompleted = net.oupz.bountyboard.client.ClientDailyStatus.isCompletedToday(id);
+        }
+        acceptButton.active = showTierButtons && (selectedBountyIndex >= 0) && !alreadyCompleted;
     }
 
     private void updateButtonStates() {
@@ -501,23 +507,42 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
     }
 
     private void renderBountyEntry(GuiGraphics graphics, BountyData bounty, int x, int y, boolean isSelected, boolean isHovered) {
-        // Draw background highlight with better contrast
-        if (isSelected) {
-            // Strong green selection highlight
+        // Is this bounty already completed today?
+        boolean alreadyCompleted = net.oupz.bountyboard.client.ClientDailyStatus.isCompletedToday(bounty.id);
+
+        // Row background/highlight
+        if (alreadyCompleted) {
+            // subtle dark overlay for completed rows
+            graphics.fill(x, y, x + LIST_WIDTH, y + ITEM_CONTENT_HEIGHT, 0x55000000);
+        } else if (isSelected) {
+            // strong green selection highlight
             graphics.fill(x, y, x + LIST_WIDTH, y + ITEM_CONTENT_HEIGHT, 0xCC00AA00);
         } else if (isHovered) {
-            // Subtle dark highlight that improves text readability
+            // subtle dark highlight that improves text readability
             graphics.fill(x, y, x + LIST_WIDTH, y + ITEM_CONTENT_HEIGHT, 0x40000000);
         }
 
-        // Draw bounty info with proper spacing and better text colors
-        int mainTextColor = isSelected ? 0xFFFFFF : (isHovered ? 0xFFFFFF : 0xFFFFFF);
-        int rewardTextColor = isSelected ? 0xFFFF80 : (isHovered ? 0xFFD700 : 0xFFD700);
-        int targetTextColor = isSelected ? 0xE0E0E0 : (isHovered ? 0xF0F0F0 : 0xCCCCCC);
+        // Text colors
+        final int mainTextColor   = alreadyCompleted ? 0xFFAAAAAA : 0xFFFFFFFF;
+        final int rewardTextColor = alreadyCompleted ? 0xFF888888 : 0xFFFFD700; // gold when available
+        // final int targetTextColor = alreadyCompleted ? 0xFF777777 : 0xFFCCCCCC; // (unused line kept for reference)
 
-        graphics.drawString(font, bounty.description, x + 5, y + 3, mainTextColor, false);
-        graphics.drawString(font, "Reward: " + bounty.getScaledReward(selectedTier) + " renown", x + 5, y + 13, rewardTextColor, false);
-        //graphics.drawString(font, "Target: " + bounty.targetCount + " " + bounty.targetType, x + 5, y + 23, targetTextColor, false);
+        // Title/description
+        graphics.drawString(font,
+                alreadyCompleted ? (bounty.description + " (completed)") : bounty.description,
+                x + 5, y + 3, mainTextColor, false);
+
+        // Reward line
+        graphics.drawString(font,
+                "Reward: " + bounty.getScaledReward(selectedTier) + " renown",
+                x + 5, y + 13, rewardTextColor, false);
+
+        // If you want to strike-through the title when completed, uncomment:
+        // if (alreadyCompleted) {
+        //     int titleW = this.font.width(bounty.description);
+        //     int lineY  = y + 3 + this.font.lineHeight / 2;
+        //     graphics.fill(x + 5, lineY, x + 5 + titleW, lineY + 1, 0x66FFFFFF);
+        // }
     }
 
     private void renderHistoryEntry(GuiGraphics graphics, PlayerHistoryEntry entry, int x, int y, boolean isHovered) {
