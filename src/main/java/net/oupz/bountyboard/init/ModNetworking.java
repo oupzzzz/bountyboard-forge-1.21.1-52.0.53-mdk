@@ -100,6 +100,18 @@ public final class ModNetworking {
                 .decoder(GhostWalkStatusS2C::decode)
                 .consumerMainThread(GhostWalkStatusS2C::handle)
                 .add();
+
+        CHANNEL.messageBuilder(BountyCompletedS2C.class, nextId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(BountyCompletedS2C::encode)
+                .decoder(BountyCompletedS2C::decode)
+                .consumerMainThread(BountyCompletedS2C::handle)
+                .add();
+
+        CHANNEL.messageBuilder(RenownSyncS2C.class, nextId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(RenownSyncS2C::encode)
+                .decoder(RenownSyncS2C::decode)
+                .consumerMainThread(RenownSyncS2C::handle)
+                .add();
     }
 
 }

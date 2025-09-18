@@ -61,6 +61,8 @@ public final class ProximityWatcher {
                 float mult     = net.oupz.bountyboard.bounty.renown.RenownHelper.getMultiplierForTier(tier);
                 int finalRenown = Math.round(baseRenown * mult);
 
+
+
                 // Add to player's renown capability + append history entry
                 net.oupz.bountyboard.player.renown.PlayerRenown capRenown =
                         net.oupz.bountyboard.player.renown.RenownCapabilityEvents.get(player);
@@ -80,6 +82,16 @@ public final class ProximityWatcher {
                         finalRenown,
                         System.currentTimeMillis()
                 ));
+
+                net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
+                        new net.oupz.bountyboard.net.RenownSyncS2C(capRenown.getTotalRenown()),
+                        player.connection.getConnection()
+                );
+
+                net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
+                        new net.oupz.bountyboard.net.BountyCompletedS2C(bountyId, finalRenown),
+                        player.connection.getConnection()
+                );
 
                 // --- existing pending reward update (keep) ---
                 net.oupz.bountyboard.bounty.rewards.PendingRewards.add(player, tier, 1);

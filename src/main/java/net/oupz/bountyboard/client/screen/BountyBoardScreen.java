@@ -14,13 +14,16 @@ import net.minecraftforge.network.PacketDistributor;
 import net.oupz.bountyboard.BountyBoard;
 import net.oupz.bountyboard.bounty.renown.RenownHelper;
 import net.oupz.bountyboard.client.ClientDailyStatus;
+import net.oupz.bountyboard.client.ClientRenown;
 import net.oupz.bountyboard.client.ClientRewards;
 import net.oupz.bountyboard.init.ModNetworking;
 import net.oupz.bountyboard.net.AcceptBountyC2S;
 import net.oupz.bountyboard.util.RenderUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @OnlyIn(Dist.CLIENT)
 public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> {
@@ -83,6 +86,8 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
     // These are updated by DailyStatusS2C::handle on the client.
     public static volatile int LAST_COMPLETED = 0;
     public static volatile long LAST_SECONDS_TO_RESET = 0L;
+
+    private final Map<ResourceLocation, Integer> acceptedRewardSnapshots = new HashMap<>();
 
     private static volatile boolean REFRESH_PING = false; // set true by DailyStatusS2C when new data arrives
 
@@ -510,7 +515,6 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
     }
 
     private void renderBountyEntry(GuiGraphics graphics, BountyData bounty, int x, int y, boolean isSelected, boolean isHovered) {
-        // Is this bounty already completed today? (ClientDailyStatus stores ids as strings)
         boolean alreadyCompleted = net.oupz.bountyboard.client.ClientDailyStatus.isCompletedToday(bounty.id.toString());
 
         // Row background/highlight
@@ -522,7 +526,6 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
             graphics.fill(x, y, x + LIST_WIDTH, y + ITEM_CONTENT_HEIGHT, 0x40000000);
         }
 
-        // Text colors
         final int mainTextColor   = alreadyCompleted ? 0xFFAAAAAA : 0xFFFFFFFF;
         final int rewardTextColor = alreadyCompleted ? 0xFF888888 : 0xFFFFD700;
 
@@ -531,9 +534,21 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
                 alreadyCompleted ? (bounty.description + " (completed)") : bounty.description,
                 x + 5, y + 3, mainTextColor, false);
 
-        // Reward line (now computed from RenownHelper, same as server)
+        // Decide which reward to show:
+        // - If it's completed today AND we have a snapshot from when it was accepted, show that fixed value.
+        // - Else show the dynamic reward for the currently selected tier.
+        int displayReward;
+        Integer completedSnap = net.oupz.bountyboard.client.ClientCompletedSnapshots.get(bounty.id);
+        if (completedSnap != null) {
+            // Completed: show the fixed snapshot received from server
+            displayReward = completedSnap;
+        } else {
+            // Not completed (or no snapshot yet): show dynamic reward
+            displayReward = bounty.getScaledReward(selectedTier);
+        }
+
         graphics.drawString(font,
-                "Reward: " + bounty.getScaledReward(selectedTier) + " renown",
+                "Reward: " + displayReward + " renown",
                 x + 5, y + 13, rewardTextColor, false);
     }
 
@@ -699,12 +714,27 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
         if (selectedBountyIndex >= 0 && selectedBountyIndex < currentBounties.size()) {
             BountyData bounty = currentBounties.get(selectedBountyIndex);
 
-            // We already have a proper ResourceLocation now
-            ModNetworking.CHANNEL.send(new AcceptBountyC2S(bounty.id, selectedTier),
-                    PacketDistributor.SERVER.noArg());
+            // We already have a proper ResourceLocation on BountyData now
+            net.minecraft.resources.ResourceLocation rl = bounty.id;
 
-            System.out.println("Accepted bounty: " + bounty.description + " (" + bounty.id + ")");
+            // Compute and store the snapshot (base from RenownHelper with player UUID + tier multiplier)
+            var mc = net.minecraft.client.Minecraft.getInstance();
+            java.util.UUID pid = (mc.player != null) ? mc.player.getUUID() : new java.util.UUID(0L, 0L);
+            int base  = net.oupz.bountyboard.bounty.renown.RenownHelper.getBaseRenown(rl, pid);
+            float mult = net.oupz.bountyboard.bounty.renown.RenownHelper.getMultiplierForTier(selectedTier);
+            int finalReward = Math.round(base * mult);
+            acceptedRewardSnapshots.put(rl, finalReward);
 
+            // Send the real accept packet to the server
+            net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
+                    new net.oupz.bountyboard.net.AcceptBountyC2S(rl, selectedTier),
+                    net.minecraftforge.network.PacketDistributor.SERVER.noArg()
+            );
+
+            // Optional local log
+            System.out.println("Accepted bounty: " + bounty.description + " (" + rl + ") snapshot=" + finalReward);
+
+            // Reset selection after accepting
             selectedBountyIndex = -1;
             updateButtonVisibility();
         }
@@ -741,8 +771,7 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
     }
 
     private int getPlayerRenown() {
-        // TODO: Get actual player renown from capability/server
-        return 450;
+        return ClientRenown.getTotal();
     }
 
     // Data classes
