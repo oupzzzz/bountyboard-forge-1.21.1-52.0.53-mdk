@@ -51,11 +51,6 @@ public class BountyBoardBlockEntity extends BlockEntity implements MenuProvider 
         );
         System.out.println("[BountyBoard] Player " + player.getName().getString()
                 + " accepted bountyId=" + bountyId + " with tier=" + tier);
-
-        // TODO: Replace the above with your actual server‐side logic:
-        //  • Generate spawn coordinates
-        //  • Register active bounty in your data structures
-        //  • Deduct from daily limit, etc.
     }
 
     @Override
@@ -159,7 +154,6 @@ public class BountyBoardBlockEntity extends BlockEntity implements MenuProvider 
 
     private void resetRenown() {
         playerRenown.clear();
-        // TODO: Add any additional reset logic, like saving historical data
     }
 
     public boolean acceptBounty(Player player, String bountyId, int tier) {
@@ -180,8 +174,6 @@ public class BountyBoardBlockEntity extends BlockEntity implements MenuProvider 
         ActiveBounty activeBounty = new ActiveBounty(template, tier);
         activeBounties.put(playerId, activeBounty);
 
-        // TODO: Give player a tracking item or update their capability
-
         setChanged();
         return true;
     }
@@ -200,8 +192,6 @@ public class BountyBoardBlockEntity extends BlockEntity implements MenuProvider 
 
         // Remove active bounty
         activeBounties.remove(playerId);
-
-        // TODO: Give rewards, achievements, etc.
 
         setChanged();
         return true;

@@ -33,6 +33,7 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.PLUSH_BLOCK_OUPZ.get());
                         output.accept(ModBlocks.PLUSH_BLOCK_KRIZTEN.get());
                         output.accept(ModBlocks.PLUSH_BLOCK_TFOLK.get());
+                        output.accept(ModBlocks.PLUSH_BLOCK_ITZJASTER.get());
                     }).build());
 
     public static void register(IEventBus eventBus) {

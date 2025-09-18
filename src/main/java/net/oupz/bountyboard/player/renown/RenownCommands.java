@@ -32,6 +32,12 @@ public class RenownCommands {
                                     ServerPlayer sp = ctx.getSource().getPlayerOrException();
                                     int amt = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "amount");
                                     RenownCapabilityEvents.get(sp).setTotalRenown(amt);
+
+                                    net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
+                                            new net.oupz.bountyboard.net.RenownSyncS2C( RenownCapabilityEvents.get(sp).getTotalRenown() ),
+                                            sp.connection.getConnection()
+                                    );
+
                                     ctx.getSource().sendSuccess(() -> Component.literal("Set renown to " + amt), true);
                                     return 1;
                                 })
@@ -41,6 +47,12 @@ public class RenownCommands {
                         .executes(ctx -> {
                             ServerPlayer sp = ctx.getSource().getPlayerOrException();
                             RenownCapabilityEvents.get(sp).clear();
+
+                            net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
+                                    new net.oupz.bountyboard.net.RenownSyncS2C( 0 ),
+                                    sp.connection.getConnection()
+                            );
+
                             ctx.getSource().sendSuccess(() -> Component.literal("Cleared renown & history"), true);
                             return 1;
                         })

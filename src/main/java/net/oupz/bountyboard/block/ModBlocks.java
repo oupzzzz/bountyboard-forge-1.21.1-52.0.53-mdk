@@ -56,6 +56,13 @@ public class ModBlocks {
                     .sound(SoundType.WOOL)
                     .pushReaction(PushReaction.DESTROY)));
 
+    public static final RegistryObject<PlushBlock> PLUSH_BLOCK_ITZJASTER = BLOCKS.register("plush_block_itzjaster",
+            () -> new PlushBlock(BlockBehaviour.Properties.of()
+                    .strength(1.0F)
+                    .noOcclusion()
+                    .sound(SoundType.WOOL)
+                    .pushReaction(PushReaction.DESTROY)));
+
     private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> block) {
         RegistryObject<T> toReturn = BLOCKS.register(name, block);
         registerBlockItem(name, toReturn);

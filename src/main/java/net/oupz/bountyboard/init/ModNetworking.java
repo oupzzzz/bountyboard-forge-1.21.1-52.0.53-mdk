@@ -112,6 +112,18 @@ public final class ModNetworking {
                 .decoder(RenownSyncS2C::decode)
                 .consumerMainThread(RenownSyncS2C::handle)
                 .add();
+
+        CHANNEL.messageBuilder(BiweeklyResetEpochS2C.class, nextId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(BiweeklyResetEpochS2C::encode)
+                .decoder(BiweeklyResetEpochS2C::decode)
+                .consumerMainThread(BiweeklyResetEpochS2C::handle)
+                .add();
+
+        CHANNEL.messageBuilder(RequestBiweeklyResetEpochC2S.class, nextId(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(RequestBiweeklyResetEpochC2S::encode)
+                .decoder(RequestBiweeklyResetEpochC2S::decode)
+                .consumerMainThread(RequestBiweeklyResetEpochC2S::handle)
+                .add();
     }
 
 }

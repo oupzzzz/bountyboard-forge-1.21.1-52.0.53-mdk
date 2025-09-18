@@ -15,6 +15,7 @@ import net.oupz.bountyboard.BountyBoard;
 import net.oupz.bountyboard.bounty.renown.RenownHelper;
 import net.oupz.bountyboard.client.ClientDailyStatus;
 import net.oupz.bountyboard.client.ClientRenown;
+import net.oupz.bountyboard.client.ClientResetClock;
 import net.oupz.bountyboard.client.ClientRewards;
 import net.oupz.bountyboard.init.ModNetworking;
 import net.oupz.bountyboard.net.AcceptBountyC2S;
@@ -138,6 +139,14 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
         initializeTempData();
     }
 
+    private static String formatDdHhMm(long totalSeconds) {
+        long s = Math.max(0L, totalSeconds);
+        long days = s / 86400;
+        long hours = (s % 86400) / 3600;
+        long mins = (s % 3600) / 60;
+        return String.format("%02d Day(s) %02d Hour(s) %02d Minute(s)", days, hours, mins);
+    }
+
     @Override
     protected void init() {
         super.init();
@@ -194,6 +203,11 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
                 Component.literal("✓"),
                 button -> acceptSelectedBounty(),
                 this));
+
+        net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
+                new net.oupz.bountyboard.net.RequestBiweeklyResetEpochC2S(),
+                net.minecraftforge.network.PacketDistributor.SERVER.noArg()
+        );
 
         updateButtonVisibility();
         updateButtonStates();
@@ -288,6 +302,14 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
         playerViewButton.setSelected(currentView == ViewMode.PLAYER);
 
         updateButtonVisibility();
+
+        // NEW: when entering the Player tab, ask the server for the next reset epoch
+        if (currentView == ViewMode.PLAYER) {
+            net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
+                    new net.oupz.bountyboard.net.RequestBiweeklyResetEpochC2S(),
+                    net.minecraftforge.network.PacketDistributor.SERVER.noArg()
+            );
+        }
     }
 
     private void selectTier(int tier) {
@@ -349,11 +371,10 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
 
-        // --- Daily limit HUD (only show in BOUNTIES tab) ---
+        // --- Top row info (outside the scissor) ---
         if (currentView == ViewMode.BOUNTIES) {
             final int infoLeftX  = this.leftPos + LIST_START_X;
-            final int infoRightX = this.leftPos + LIST_END_X;
-            final int infoY      = this.topPos + 36; // a bit above the list
+            final int infoY      = this.topPos + 36;
 
             final int  completed = ClientDailyStatus.completedToday();
             final long secs      = ClientDailyStatus.remainingSeconds();
@@ -362,29 +383,24 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
             final String leftText = "Bounties: " + completed + "/" + DAILY_LIMIT;
             graphics.drawString(this.font, leftText, infoLeftX, infoY, 0xFFFFFF, false);
 
-            // --- Right side aligned to the scrollbar ---
-            final int scrollBarLeft  = this.leftPos + SCROLL_BAR_X;               // x where the scrollbar starts
-            final int scrollBarRight = scrollBarLeft + SCROLL_BAR_WIDTH;          // x where the scrollbar ends
-
-            // Right: "Reset: hh:mm:ss" (end a few px *before* the scrollbar)
-            final String rightText = "Reset: " + formatHms(secs);
-            final int rightTextW   = this.font.width(rightText);
-            final int rightTextX   = scrollBarLeft - 6 - rightTextW;              // 6px padding before scrollbar
+            // Right: "Reset: hh:mm:ss"
+            final int scrollBarLeft  = this.leftPos + SCROLL_BAR_X;
+            final String rightText   = "Reset: " + formatHms(secs);
+            final int rightTextW     = this.font.width(rightText);
+            final int rightTextX     = scrollBarLeft - 6 - rightTextW;
             graphics.drawString(this.font, rightText, rightTextX, infoY, 0xAAAAAA, false);
 
             // ===== Reward claim icon =====
-            // Place it just to the RIGHT of the scrollbar with a small gap
+            final int scrollBarRight = scrollBarLeft + SCROLL_BAR_WIDTH;
             final int gapAfterBar = 6;
             claimIconW = 16; claimIconH = 16;
             claimIconX = scrollBarRight + gapAfterBar;
             claimIconY = infoY - 3;
 
-            // Ensure no stale tint/alpha affects the icon
             com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
             com.mojang.blaze3d.systems.RenderSystem.setShaderTexture(0, REWARD_ICON);
             graphics.blit(REWARD_ICON, claimIconX, claimIconY, 0, 0, claimIconW, claimIconH, claimIconW, claimIconH);
 
-            // Pending badge (top-right corner of icon)
             int pending = ClientRewards.pendingCount();
             if (pending > 0) {
                 int badgeW = Math.max(10, this.font.width(String.valueOf(pending)) + 6);
@@ -392,13 +408,11 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
                 int bx = claimIconX + claimIconW - badgeW + 2;
                 int by = claimIconY - 2;
 
-                graphics.fill(bx - 1, by - 1, bx + badgeW + 1, by + badgeH + 1, 0xFF000000); // outline
-                graphics.fill(bx, by, bx + badgeW, by + badgeH, 0xFFE0A000);                 // fill
-                graphics.drawCenteredString(this.font, String.valueOf(pending),
-                        bx + badgeW / 2, by + 1, 0xFFFFFFFF);
+                graphics.fill(bx - 1, by - 1, bx + badgeW + 1, by + badgeH + 1, 0xFF000000);
+                graphics.fill(bx, by, bx + badgeW, by + badgeH, 0xFFE0A000);
+                graphics.drawCenteredString(this.font, String.valueOf(pending), bx + badgeW / 2, by + 1, 0xFFFFFFFF);
             }
 
-            // Live refresh around midnight (ask server once per ~2s when countdown hits 0)
             long nowMs = System.currentTimeMillis();
             if (secs <= 0) {
                 if (!awaitingDailyRefresh || (nowMs - lastDailyPollMs) > 2000L) {
@@ -410,10 +424,21 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
                     );
                 }
             }
-            if (REFRESH_PING) { // cleared by DailyStatusS2C handler
+            if (REFRESH_PING) {
                 REFRESH_PING = false;
                 awaitingDailyRefresh = false;
             }
+        } else if (currentView == ViewMode.PLAYER) {
+            // Player tab: Biweekly reset countdown DD:HH:MM (outside scissor, same row)
+            long secs = ClientResetClock.secondsRemaining();
+            String ddhhmm = formatDdHhMm(secs);
+
+            final int infoY = this.topPos + 36;
+            int centerX = this.leftPos + (this.imageWidth / 2);
+            int textWidth = this.font.width(ddhhmm);
+            int textX = centerX - (textWidth / 2);
+
+            graphics.drawString(this.font, ddhhmm, textX, infoY, 0xAAAAAA, false);
         }
 
         // List scissor + content
@@ -436,7 +461,6 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
         renderScrollbar(graphics, this.leftPos, this.topPos);
         renderTooltip(graphics, mouseX, mouseY);
 
-        // ---- Draw reward icon tooltip last so it's on top (fix empty text by resetting color) ----
         if (currentView == ViewMode.BOUNTIES &&
                 mouseX >= claimIconX && mouseX < claimIconX + claimIconW &&
                 mouseY >= claimIconY && mouseY < claimIconY + claimIconH) {
@@ -482,37 +506,12 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
     }
 
     private void renderPlayerView(GuiGraphics graphics, int containerX, int containerY, int mouseX, int mouseY) {
-        // Render player's current renown
+        // --- Player's current renown ---
         int playerRenown = getPlayerRenown();
-        graphics.drawString(font, "Your Renown: " + playerRenown, containerX + LIST_START_X + 5, containerY + LIST_START_Y + 5, 0x00FF00, false);
-
-        // Render bounty history
-        graphics.drawString(font, "Bounty History:", containerX + LIST_START_X + 5, containerY + LIST_START_Y + 18, 0xCCCCCC, false);
-
-        // Calculate which items to render based on fluid scroll offset
-        float itemsFromTop = scrollOffset;
-        int firstVisibleIndex = (int) Math.floor(itemsFromTop);
-        float partialOffset = itemsFromTop - firstVisibleIndex;
-
-        // Render history entries that are visible (including partially visible ones)
-        for (int i = firstVisibleIndex; i < playerHistory.size(); i++) {
-            int relativeIndex = i - firstVisibleIndex;
-            float itemY = containerY + LIST_START_Y + 32 + (relativeIndex * ITEM_HEIGHT) - (partialOffset * ITEM_HEIGHT); // Start below headers
-
-            // Stop rendering if we're past the visible area
-            if (itemY > containerY + LIST_END_Y) {
-                break;
-            }
-
-            // Only render if at least partially visible
-            if (itemY + ITEM_CONTENT_HEIGHT > containerY + LIST_START_Y + 32) {
-                boolean isHovered = mouseX >= containerX + LIST_START_X && mouseX <= containerX + LIST_END_X &&
-                        mouseY >= itemY && mouseY <= itemY + ITEM_CONTENT_HEIGHT;
-
-                renderHistoryEntry(graphics, playerHistory.get(i), containerX + LIST_START_X, (int) itemY, isHovered);
-            }
-        }
+        graphics.drawString(font, "Your Renown: " + playerRenown,
+                containerX + LIST_START_X + 5, containerY + LIST_START_Y + 5, 0xCCCCCC, false);
     }
+
 
     private void renderBountyEntry(GuiGraphics graphics, BountyData bounty, int x, int y, boolean isSelected, boolean isHovered) {
         boolean alreadyCompleted = net.oupz.bountyboard.client.ClientDailyStatus.isCompletedToday(bounty.id.toString());
@@ -749,14 +748,6 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
         wantedPlayers.add(new WantedPlayer("Steve", 1500));
         wantedPlayers.add(new WantedPlayer("Alex", 1200));
         wantedPlayers.add(new WantedPlayer("Notch", 900));
-
-        // Initialize player history
-        playerHistory.clear();
-        playerHistory.add(new PlayerHistoryEntry("Pillager Patrol", "2024-01-15", 100));
-        playerHistory.add(new PlayerHistoryEntry("Vindicator Hunt", "2024-01-12", 150));
-        playerHistory.add(new PlayerHistoryEntry("Crossbow Confiscation", "2024-01-10", 200));
-        playerHistory.add(new PlayerHistoryEntry("Raid Prevention", "2024-01-08", 300));
-        playerHistory.add(new PlayerHistoryEntry("Evoker Elimination", "2024-01-05", 400));
     }
 
     private void loadBaseBounties() {

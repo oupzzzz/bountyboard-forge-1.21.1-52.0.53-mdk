@@ -34,6 +34,9 @@ public class ModItems {
     public static final RegistryObject<Item> PLUSH_BLOCK_ITEM_TFOLK = ITEMS.register("plush_block_tfolk",
             () -> new PlushBlockItem(ModBlocks.PLUSH_BLOCK_TFOLK.get(), new Item.Properties().stacksTo(1)));
 
+    public static final RegistryObject<Item> PLUSH_BLOCK_ITEM_ITZJASTER = ITEMS.register("plush_block_itzjaster",
+            () -> new PlushBlockItem(ModBlocks.PLUSH_BLOCK_ITZJASTER.get(), new Item.Properties().stacksTo(1)));
+
     public static final RegistryObject<Item> HEADHUNTERS_HATCHET = ITEMS.register("headhunters_hatchet",
             () -> new HeadhuntersHatchet(ModToolTiers.HEADHUNTER_TIER, new Item.Properties()
                     .attributes(HeadhuntersHatchet.createAttributes(ModToolTiers.HEADHUNTER_TIER, 3.0f, 1.6f))) {
