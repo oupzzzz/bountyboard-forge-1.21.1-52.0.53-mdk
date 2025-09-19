@@ -511,13 +511,8 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
     }
 
     private void renderPlayerView(GuiGraphics graphics, int containerX, int containerY, int mouseX, int mouseY) {
-        // --- Player's current renown ---
-        int playerRenown = getPlayerRenown();
-        graphics.drawString(font, "Your Renown: " + playerRenown,
-                containerX + LIST_START_X + 5, containerY + LIST_START_Y + 5, 0xCCCCCC, false);
-
         // --- Top Wanted header ---
-        int headerY = containerY + LIST_START_Y + 20;
+        int headerY = containerY + LIST_START_Y + 5;
         graphics.drawString(font, "Top Wanted:", containerX + LIST_START_X + 5, headerY, 0xEEEEEE, false);
 
         // Lines start a bit below header
@@ -533,9 +528,15 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
         if (top.size() > 1) l2 = "2. " + top.get(1).name() + ": " + top.get(1).renown();
         if (top.size() > 2) l3 = "3. " + top.get(2).name() + ": " + top.get(2).renown();
 
-        graphics.drawString(font, l1, containerX + LIST_START_X + 10, lineY, 0xFFD700, false);
+        graphics.drawString(font, l1, containerX + LIST_START_X + 10, lineY,       0xFFD700, false);
         graphics.drawString(font, l2, containerX + LIST_START_X + 10, lineY + 10, 0xFFFFFF, false);
         graphics.drawString(font, l3, containerX + LIST_START_X + 10, lineY + 20, 0xFFFFFF, false);
+
+        // --- Player's current renown (moved BELOW wanted list) ---
+        int playerRenownY = lineY + 40; // add spacing after list
+        int playerRenown  = getPlayerRenown();
+        graphics.drawString(font, "Your Renown: " + playerRenown,
+                containerX + LIST_START_X + 5, playerRenownY, 0xCCCCCC, false);
     }
 
 

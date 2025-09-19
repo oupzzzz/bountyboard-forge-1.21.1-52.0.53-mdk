@@ -8,11 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -20,11 +16,17 @@ import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 import net.oupz.bountyboard.BountyBoard;
 import net.oupz.bountyboard.bounty.Bounty;
+import net.oupz.bountyboard.bounty.BountyNoDrops;
 import net.oupz.bountyboard.bounty.BountyRegistry;
 import net.oupz.bountyboard.bounty.cap.ActiveBounty;
 import net.oupz.bountyboard.bounty.cap.ActiveBountyProvider;
+import net.oupz.bountyboard.bounty.limits.DailyLimit;
+import net.oupz.bountyboard.bounty.renown.CompletedBounty;
+import net.oupz.bountyboard.bounty.renown.RenownHelper;
+import net.oupz.bountyboard.bounty.rewards.PendingRewards;
 import net.oupz.bountyboard.init.ModNetworking;
-import net.oupz.bountyboard.net.TopWantedS2C;
+import net.oupz.bountyboard.net.*;
+import net.oupz.bountyboard.player.renown.PlayerRenown;
 import net.oupz.bountyboard.player.renown.RenownCapabilityEvents;
 import net.oupz.bountyboard.wanted.WantedSavedData;
 
@@ -60,16 +62,16 @@ public final class ProximityWatcher {
                 int tier = cap.getTier(); // 0..2 as you already store
                 ResourceLocation bountyId = cap.getBountyId();
 
-                int baseRenown = net.oupz.bountyboard.bounty.renown.RenownHelper
+                int baseRenown = RenownHelper
                         .getBaseRenown(cap.getBountyId(), player.getUUID());
-                float mult     = net.oupz.bountyboard.bounty.renown.RenownHelper.getMultiplierForTier(tier);
+                float mult     = RenownHelper.getMultiplierForTier(tier);
                 int finalRenown = Math.round(baseRenown * mult);
 
 
 
                 // Add to player's renown capability + append history entry
-                net.oupz.bountyboard.player.renown.PlayerRenown capRenown =
-                        net.oupz.bountyboard.player.renown.RenownCapabilityEvents.get(player);
+                PlayerRenown capRenown =
+                        RenownCapabilityEvents.get(player);
                 capRenown.addRenown(finalRenown);
 
                 // If your CompletedBounty uses ResourceLocation as the id:
@@ -78,7 +80,7 @@ public final class ProximityWatcher {
                                 .getBytes(java.nio.charset.StandardCharsets.UTF_8)
                 );
 
-                capRenown.addCompleted(new net.oupz.bountyboard.bounty.renown.CompletedBounty(
+                capRenown.addCompleted(new CompletedBounty(
                         bountyUuid,
                         baseRenown,
                         tier,
@@ -87,13 +89,13 @@ public final class ProximityWatcher {
                         System.currentTimeMillis()
                 ));
 
-                net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
-                        new net.oupz.bountyboard.net.RenownSyncS2C(capRenown.getTotalRenown()),
+                ModNetworking.CHANNEL.send(
+                        new RenownSyncS2C(capRenown.getTotalRenown()),
                         player.connection.getConnection()
                 );
 
-                net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
-                        new net.oupz.bountyboard.net.BountyCompletedS2C(bountyId, finalRenown),
+                ModNetworking.CHANNEL.send(
+                        new BountyCompletedS2C(bountyId, finalRenown),
                         player.connection.getConnection()
                 );
 
@@ -109,35 +111,35 @@ public final class ProximityWatcher {
                 }
 
                 // --- existing pending reward update (keep) ---
-                net.oupz.bountyboard.bounty.rewards.PendingRewards.add(player, tier, 1);
+                PendingRewards.add(player, tier, 1);
 
                 // Tell this client its new pending count for the UI badge
-                int pending = net.oupz.bountyboard.bounty.rewards.PendingRewards.total(player);
-                net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
-                        new net.oupz.bountyboard.net.RewardsStatusS2C(pending),
+                int pending = PendingRewards.total(player);
+                ModNetworking.CHANNEL.send(
+                        new RewardsStatusS2C(pending),
                         player.connection.getConnection()
                 );
 
                 // ▼▼ Keep your daily limit update ▼▼
                 var id = cap.getBountyId();
                 if (id != null) {
-                    boolean counted = net.oupz.bountyboard.bounty.limits.DailyLimit.markCompleted(player, id);
-                    int rem = net.oupz.bountyboard.bounty.limits.DailyLimit.remaining(player);
-                    long sec = net.oupz.bountyboard.bounty.limits.DailyLimit.secondsUntilResetUtc();
+                    boolean counted = DailyLimit.markCompleted(player, id);
+                    int rem = DailyLimit.remaining(player);
+                    long sec = DailyLimit.secondsUntilResetUtc();
 
-                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                    player.sendSystemMessage(Component.literal(
                             "[bountyboard] Bounty completed!  Remaining today: " + rem + "  |  Reset in: " + formatHms(sec)
                     ));
                 } else {
-                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                    player.sendSystemMessage(Component.literal(
                             "[bountyboard] Bounty completed!"
                     ));
                 }
                 // ▲▲ Keep ▲▲
 
                 // clear waypoint beam (finished bounty)
-                net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
-                        new net.oupz.bountyboard.net.ClearWaypointS2C(),
+                ModNetworking.CHANNEL.send(
+                        new ClearWaypointS2C(),
                         player.connection.getConnection()
                 );
             }
@@ -169,8 +171,8 @@ public final class ProximityWatcher {
             cap.setState(ActiveBounty.State.SPAWNED);
 
             // clear waypoint beam (player reached it)
-            net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
-                    new net.oupz.bountyboard.net.ClearWaypointS2C(),
+            ModNetworking.CHANNEL.send(
+                    new ClearWaypointS2C(),
                     player.connection.getConnection()
             );
 
@@ -186,7 +188,7 @@ public final class ProximityWatcher {
         // Skip if Peaceful (hostiles will be removed immediately)
         if (level.getDifficulty().getId() == 0) return;
 
-        var rng   = ThreadLocalRandom.current();
+        var rng   = java.util.concurrent.ThreadLocalRandom.current();
         var pool  = def.poolForTier(tier);   // full list (duplicates == multiple spawns)
         int ringR = 4;                       // scatter radius start
         int ringW = 6;                       // extra random spread
@@ -215,6 +217,17 @@ public final class ProximityWatcher {
 
             DifficultyInstance diff = level.getCurrentDifficultyAt(spawnPos);
             mob.finalizeSpawn(level, diff, MobSpawnType.EVENT, (SpawnGroupData) null);
+
+            // === NO-DROPS TAG & BELT-AND-SUSPENDERS ===
+            // 1) Tag for your drop/xp event filters
+            BountyNoDrops.tagNoDrops(mob);
+            // 2) Prevent equipment from dropping and stop picking up loot
+            for (EquipmentSlot slot : EquipmentSlot.values()) {
+                mob.setDropChance(slot, 0.0f);
+            }
+            mob.setCanPickUpLoot(false);
+            // =========================================
+
             mob.addEffect(new MobEffectInstance(
                     MobEffects.GLOWING,
                     Integer.MAX_VALUE,   // effectively infinite
@@ -225,9 +238,10 @@ public final class ProximityWatcher {
             ));
             level.addFreshEntity(mob);
 
-            cap.addSpawnedMobId(mob.getUUID()); // <-- record for completion tracking
+            cap.addSpawnedMobId(mob.getUUID()); // record for completion tracking
         }
     }
+
 
     /** Remove dead/missing mobs from the tracked list and return whether any are still alive. */
     private static boolean pruneAndCheckAlive(ServerLevel level, ActiveBounty cap) {

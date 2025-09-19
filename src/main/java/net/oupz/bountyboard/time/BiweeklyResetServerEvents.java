@@ -12,6 +12,7 @@ import net.oupz.bountyboard.BountyBoard;
 import net.oupz.bountyboard.init.ModNetworking;
 import net.oupz.bountyboard.net.TopWantedS2C;
 import net.oupz.bountyboard.player.renown.RenownCapabilityEvents;
+import net.oupz.bountyboard.wanted.SentinelStashRewarder;
 import net.oupz.bountyboard.wanted.WantedSavedData;
 import net.oupz.bountyboard.world.ResetScheduleSavedData;
 
@@ -60,7 +61,7 @@ public class BiweeklyResetServerEvents {
                     var entry = top1.get(0);
                     boolean disqualified = wdata.wasKilledThisCycle(entry.id());
                     if (!disqualified) {
-                        net.oupz.bountyboard.wanted.SentinelStashRewarder.awardOne(server, entry.id());
+                        SentinelStashRewarder.awardOne(server, entry.id());
                     }
                 }
                 // Clear wanted data for the new cycle (also clears killed flags)

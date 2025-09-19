@@ -1,5 +1,6 @@
 package net.oupz.bountyboard.bounty;
 
+import net.minecraft.world.entity.Entity;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
@@ -13,23 +14,25 @@ public final class BountyNoDrops {
 
     private BountyNoDrops() {}
 
-    /** Remove all item drops from bounty-spawned mobs. */
+    /** Call this on any mob you spawn for a bounty. */
+    public static void tagNoDrops(Entity e) {
+        if (e != null) {
+            e.getPersistentData().putBoolean(NBT_FLAG, true);
+        }
+    }
+
     @SubscribeEvent
     public static void onLivingDrops(LivingDropsEvent event) {
-        LivingEntity e = event.getEntity();
-        if (e == null) return;
-        if (e.getPersistentData().getBoolean(NBT_FLAG)) {
-            // nukes the drop event entirely (no items, no special banners, etc.)
+        var e = event.getEntity();
+        if (e != null && e.getPersistentData().getBoolean(NBT_FLAG)) {
             event.setCanceled(true);
         }
     }
 
-    /** Remove all XP from bounty-spawned mobs. */
     @SubscribeEvent
     public static void onLivingXp(LivingExperienceDropEvent event) {
-        LivingEntity e = event.getEntity();
-        if (e == null) return;
-        if (e.getPersistentData().getBoolean(NBT_FLAG)) {
+        var e = event.getEntity();
+        if (e != null && e.getPersistentData().getBoolean(NBT_FLAG)) {
             event.setDroppedExperience(0);
         }
     }

@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "bountyboard:plush_block"
+          "name": "bountyboard:plush_block_tfolk"
         }
       ],
       "conditions": [
