@@ -9,6 +9,10 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.oupz.bountyboard.BountyBoard;
+import net.oupz.bountyboard.init.ModNetworking;
+import net.oupz.bountyboard.net.RenownSyncS2C;
+import net.oupz.bountyboard.net.TopWantedS2C;
+import net.oupz.bountyboard.wanted.WantedSavedData;
 
 @Mod.EventBusSubscriber(modid = BountyBoard.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class RenownCommands {
@@ -33,10 +37,21 @@ public class RenownCommands {
                                     int amt = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "amount");
                                     RenownCapabilityEvents.get(sp).setTotalRenown(amt);
 
-                                    net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
-                                            new net.oupz.bountyboard.net.RenownSyncS2C( RenownCapabilityEvents.get(sp).getTotalRenown() ),
+                                    ModNetworking.CHANNEL.send(
+                                            new RenownSyncS2C( RenownCapabilityEvents.get(sp).getTotalRenown() ),
                                             sp.connection.getConnection()
                                     );
+
+                                    int newTotal = RenownCapabilityEvents.get(sp).getTotalRenown();
+                                    var wdata = WantedSavedData.get(sp.server.overworld());
+                                    wdata.upsert(sp.getUUID(), sp.getGameProfile().getName(), newTotal);
+                                    var top3 = wdata.topN(3);
+                                    for (ServerPlayer other : sp.server.getPlayerList().getPlayers()) {
+                                        ModNetworking.CHANNEL.send(
+                                                new TopWantedS2C(top3),
+                                                other.connection.getConnection()
+                                        );
+                                    }
 
                                     ctx.getSource().sendSuccess(() -> Component.literal("Set renown to " + amt), true);
                                     return 1;
@@ -52,6 +67,17 @@ public class RenownCommands {
                                     new net.oupz.bountyboard.net.RenownSyncS2C( 0 ),
                                     sp.connection.getConnection()
                             );
+
+                            int newTotal = RenownCapabilityEvents.get(sp).getTotalRenown();
+                            var wdata = WantedSavedData.get(sp.server.overworld());
+                            wdata.upsert(sp.getUUID(), sp.getGameProfile().getName(), newTotal);
+                            var top3 = wdata.topN(3);
+                            for (ServerPlayer other : sp.server.getPlayerList().getPlayers()) {
+                                ModNetworking.CHANNEL.send(
+                                        new TopWantedS2C(top3),
+                                        other.connection.getConnection()
+                                );
+                            }
 
                             ctx.getSource().sendSuccess(() -> Component.literal("Cleared renown & history"), true);
                             return 1;

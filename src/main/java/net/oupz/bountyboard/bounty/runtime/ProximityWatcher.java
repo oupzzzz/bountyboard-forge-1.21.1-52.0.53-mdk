@@ -23,6 +23,10 @@ import net.oupz.bountyboard.bounty.Bounty;
 import net.oupz.bountyboard.bounty.BountyRegistry;
 import net.oupz.bountyboard.bounty.cap.ActiveBounty;
 import net.oupz.bountyboard.bounty.cap.ActiveBountyProvider;
+import net.oupz.bountyboard.init.ModNetworking;
+import net.oupz.bountyboard.net.TopWantedS2C;
+import net.oupz.bountyboard.player.renown.RenownCapabilityEvents;
+import net.oupz.bountyboard.wanted.WantedSavedData;
 
 import java.util.Iterator;
 import java.util.concurrent.ThreadLocalRandom;
@@ -92,6 +96,17 @@ public final class ProximityWatcher {
                         new net.oupz.bountyboard.net.BountyCompletedS2C(bountyId, finalRenown),
                         player.connection.getConnection()
                 );
+
+                int newTotal = RenownCapabilityEvents.get(player).getTotalRenown();
+                var wdata = WantedSavedData.get(player.server.overworld());
+                wdata.upsert(player.getUUID(), player.getGameProfile().getName(), newTotal);
+                var top3 = wdata.topN(3);
+                for (ServerPlayer other : player.server.getPlayerList().getPlayers()) {
+                    ModNetworking.CHANNEL.send(
+                            new TopWantedS2C(top3),
+                            other.connection.getConnection()
+                    );
+                }
 
                 // --- existing pending reward update (keep) ---
                 net.oupz.bountyboard.bounty.rewards.PendingRewards.add(player, tier, 1);

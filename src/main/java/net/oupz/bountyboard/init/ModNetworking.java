@@ -124,6 +124,18 @@ public final class ModNetworking {
                 .decoder(RequestBiweeklyResetEpochC2S::decode)
                 .consumerMainThread(RequestBiweeklyResetEpochC2S::handle)
                 .add();
+
+        CHANNEL.messageBuilder(RequestTopWantedC2S.class, nextId(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(RequestTopWantedC2S::encode)
+                .decoder(RequestTopWantedC2S::decode)
+                .consumerMainThread(RequestTopWantedC2S::handle)
+                .add();
+
+        CHANNEL.messageBuilder(TopWantedS2C.class, nextId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(TopWantedS2C::encode)
+                .decoder(TopWantedS2C::decode)
+                .consumerMainThread(TopWantedS2C::handle)
+                .add();
     }
 
 }

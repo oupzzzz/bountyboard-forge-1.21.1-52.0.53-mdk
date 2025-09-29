@@ -9,7 +9,10 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.server.ServerLifecycleHooks;
 import net.oupz.bountyboard.BountyBoard;
+import net.oupz.bountyboard.init.ModNetworking;
+import net.oupz.bountyboard.net.TopWantedS2C;
 import net.oupz.bountyboard.player.renown.RenownCapabilityEvents;
+import net.oupz.bountyboard.wanted.WantedSavedData;
 import net.oupz.bountyboard.world.ResetScheduleSavedData;
 
 @Mod.EventBusSubscriber(modid = BountyBoard.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -46,30 +49,59 @@ public class BiweeklyResetServerEvents {
         long storedNext = data.getNextResetEpoch();
         long nowEpoch   = java.time.Instant.now().getEpochSecond();
 
-        // --- NEW: realign if the stored epoch drifts too far from what the schedule expects right now ---
-        long expectedNext = BiweeklyReset.nextResetEpochSeconds();
-        // If off by more than 2 days (172800s), assume a manual clock jump and snap back to expected
-        if (storedNext <= 0L || Math.abs(expectedNext - storedNext) > 172_800L) {
-            data.setNextResetEpoch(expectedNext);
-            broadcastNextResetToAll(server, expectedNext);
-            storedNext = expectedNext;
-        }
-
-        // Normal firing: when we cross the boundary, perform the reset and schedule the next
+        // 1) If we are due (or past due), RUN THE RESET NOW (do NOT realign first)
         if (storedNext > 0L && nowEpoch >= storedNext) {
-            // Zero all online players' renown
+
+            // --- Award Sentinel Stash to #1 if eligible (not killed this cycle) ---
+            {
+                var wdata = net.oupz.bountyboard.wanted.WantedSavedData.get(level);
+                var top1  = wdata.topN(1);
+                if (!top1.isEmpty()) {
+                    var entry = top1.get(0);
+                    boolean disqualified = wdata.wasKilledThisCycle(entry.id());
+                    if (!disqualified) {
+                        net.oupz.bountyboard.wanted.SentinelStashRewarder.awardOne(server, entry.id());
+                    }
+                }
+                // Clear wanted data for the new cycle (also clears killed flags)
+                wdata.clearAll();
+            }
+
+            // --- Zero all online players' renown and push GUI sync ---
             for (ServerPlayer p : server.getPlayerList().getPlayers()) {
                 var cap = net.oupz.bountyboard.player.renown.RenownCapabilityEvents.get(p);
-                cap.clear();
+                cap.clear(); // zero total + clear history
+
                 net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
                         new net.oupz.bountyboard.net.RenownSyncS2C(0),
                         p.connection.getConnection()
                 );
             }
 
+            // --- Broadcast fresh (now empty) Top 3 to everyone ---
+            {
+                var wdata = net.oupz.bountyboard.wanted.WantedSavedData.get(level);
+                var top3  = wdata.topN(3);
+                for (ServerPlayer other : server.getPlayerList().getPlayers()) {
+                    net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
+                            new net.oupz.bountyboard.net.TopWantedS2C(top3),
+                            other.connection.getConnection()
+                    );
+                }
+            }
+
+            // Schedule next reset and broadcast epoch to clients
             long next = net.oupz.bountyboard.time.BiweeklyReset.nextResetEpochSeconds();
             data.setNextResetEpoch(next);
             broadcastNextResetToAll(server, next);
+            return; // done this tick
+        }
+
+        // 2) Not due yet → optionally realign if drifted (protects against clock jumps in prod)
+        long expectedNext = net.oupz.bountyboard.time.BiweeklyReset.nextResetEpochSeconds();
+        if (storedNext <= 0L || Math.abs(expectedNext - storedNext) > 172_800L) {
+            data.setNextResetEpoch(expectedNext);
+            broadcastNextResetToAll(server, expectedNext);
         }
     }
 

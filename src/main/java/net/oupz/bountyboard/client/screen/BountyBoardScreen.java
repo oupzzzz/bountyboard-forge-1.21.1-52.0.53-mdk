@@ -13,12 +13,11 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.network.PacketDistributor;
 import net.oupz.bountyboard.BountyBoard;
 import net.oupz.bountyboard.bounty.renown.RenownHelper;
-import net.oupz.bountyboard.client.ClientDailyStatus;
-import net.oupz.bountyboard.client.ClientRenown;
-import net.oupz.bountyboard.client.ClientResetClock;
-import net.oupz.bountyboard.client.ClientRewards;
+import net.oupz.bountyboard.client.*;
 import net.oupz.bountyboard.init.ModNetworking;
 import net.oupz.bountyboard.net.AcceptBountyC2S;
+import net.oupz.bountyboard.net.RequestBiweeklyResetEpochC2S;
+import net.oupz.bountyboard.net.RequestTopWantedC2S;
 import net.oupz.bountyboard.util.RenderUtil;
 
 import java.util.ArrayList;
@@ -305,9 +304,15 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
 
         // NEW: when entering the Player tab, ask the server for the next reset epoch
         if (currentView == ViewMode.PLAYER) {
-            net.oupz.bountyboard.init.ModNetworking.CHANNEL.send(
-                    new net.oupz.bountyboard.net.RequestBiweeklyResetEpochC2S(),
-                    net.minecraftforge.network.PacketDistributor.SERVER.noArg()
+            ModNetworking.CHANNEL.send(
+                    new RequestBiweeklyResetEpochC2S(),
+                    PacketDistributor.SERVER.noArg()
+            );
+        }
+        if (currentView == ViewMode.PLAYER) {
+            ModNetworking.CHANNEL.send(
+                    new RequestTopWantedC2S(),
+                    PacketDistributor.SERVER.noArg()
             );
         }
     }
@@ -510,6 +515,27 @@ public class BountyBoardScreen extends AbstractContainerScreen<BountyBoardMenu> 
         int playerRenown = getPlayerRenown();
         graphics.drawString(font, "Your Renown: " + playerRenown,
                 containerX + LIST_START_X + 5, containerY + LIST_START_Y + 5, 0xCCCCCC, false);
+
+        // --- Top Wanted header ---
+        int headerY = containerY + LIST_START_Y + 20;
+        graphics.drawString(font, "Top Wanted:", containerX + LIST_START_X + 5, headerY, 0xEEEEEE, false);
+
+        // Lines start a bit below header
+        int lineY = headerY + 12;
+        var top = ClientWantedTop.get();
+
+        // Prepare three lines (placeholders if empty)
+        String l1 = "1. —";
+        String l2 = "2. —";
+        String l3 = "3. —";
+
+        if (top.size() > 0) l1 = "1. " + top.get(0).name() + ": " + top.get(0).renown();
+        if (top.size() > 1) l2 = "2. " + top.get(1).name() + ": " + top.get(1).renown();
+        if (top.size() > 2) l3 = "3. " + top.get(2).name() + ": " + top.get(2).renown();
+
+        graphics.drawString(font, l1, containerX + LIST_START_X + 10, lineY, 0xFFD700, false);
+        graphics.drawString(font, l2, containerX + LIST_START_X + 10, lineY + 10, 0xFFFFFF, false);
+        graphics.drawString(font, l3, containerX + LIST_START_X + 10, lineY + 20, 0xFFFFFF, false);
     }
 
 
